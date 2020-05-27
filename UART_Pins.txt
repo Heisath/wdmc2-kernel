@@ -1,0 +1,7 @@
+# Bottom left corner:
+
+Tx	====0
+GND	====0
+Vcc	====0	(3.3v, not used)
+N/C		x	(empty)
+Rx	====0

@@ -1,0 +1,21 @@
+/dev/md0
+> MX25L8006E with page size 64 KiB, total 1 MiB
+> Env. data: 0xf0000 - 0x100000
+
+# Change WD MAC Address:
+echo -n '00:90:A9:12:34:56' | dd of=/dev/mtd0 bs=1 seek=1046528 conv=notrunc
+
+# Change WD Serial number:
+echo -n '012345678912' | dd of=/dev/mtd0 bs=1 seek=1046576 conv=notrunc
+
+
+0x00016660 (91744)		- ?? End of bootloader ??
+
+0x000cf9c0 (850368)		- (0x000cf9c4-0x000cf9dc) "WD_Glacier_DB-88F6720-V2"
+0x000cfb00 (850688)		- "Armada-375-Customer-Board-0"
+
+0x000e2d40 (929088)		- End of data
+- empty -
+
+0x000ff800 (1046528)	- WD data: MAC Address (Format: 00:11:22:33:44:55)
+0x000ff900 (1046784)	- WD data: Serial Number (Format: xxxxxxxxxxxx | Upper case, 12 symbols)
