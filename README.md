@@ -31,4 +31,4 @@ WD My Cloud Gen2 aka wdmc-gen2 based on Marvell ARMADA 375
 
         This needs to be run on the wdmycloud. So to get your first boot use the uRamdisk provided!
 		
-
+# Thanks to AllesterFox (http://anionix.ddns.net/WDMyCloud/WDMyCloud-Gen2/) and https://github.com/Johns-Q/wdmc-gen2
