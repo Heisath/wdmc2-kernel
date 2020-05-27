@@ -11,8 +11,9 @@ WD My Cloud Gen2 aka wdmc-gen2 based on Marvell ARMADA 375
 		armada-375-wdmc-gen2.dts
 	- kernel config
 		kernel-4.18.19.config, kernel-5.6.config kernel-default.config
-
+	- some tweaks and pointers in txt files
 	- build your own kernel
+		- required gcc compiler is incuded in case you need it
 		- edit build_kernel_image.sh , adjust KERNEL_VERSION to match desired kernel version from kernel.org
 		- run build_kernel_image.sh
 		- it will:
