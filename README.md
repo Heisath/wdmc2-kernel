@@ -2,7 +2,7 @@
 WD My Cloud Gen2 kernel build script
 
 
-# WD My Cloud Gen2 aka wdmc-gen2 based on Marvell ARMADA 375
+## WD My Cloud Gen2 aka wdmc-gen2 based on Marvell ARMADA 375 ##
 
 * mainline kernel support
 	tested with 4.18.x / 5.6.x
