@@ -1,2 +1,4 @@
 /output
 /linux*
+/deployed
+/rootfs

@@ -33,16 +33,26 @@ rescue_shell() {
 	exec /bin/busybox sh
 }
 
+ask_for_stop() {
+        key='boot'
+        read -r -p "### Press any key to stop and run shell... (2)" -n1 -t5 key
+        if [ \$key != 'boot' ]; then
+                rescue_shell
+        fi
+}
+
+
 # initialise
 mount -t devtmpfs none /dev || rescue_shell "mount /dev failed."
 mount -t proc none /proc || rescue_shell "mount /proc failed."
 mount -t sysfs none /sys || rescue_shell "mount /sys failed."
 
+ask_for_stop
 sleep 5
 
 # get cmdline parameters
 init="/sbin/init"
-root=
+root=\$1
 rootflags=
 rootfstype=auto
 ro="ro"
@@ -61,7 +71,7 @@ done
 # try to mount the root filesystem.
 if [ "\${root}"x != "/dev/ram"x ]; then
 
-	mount -t \${rootfstype} -o \${ro},\${rootflags} \$(findfs \${root}) /newroot || rescue_shell "mount \${root} failed."
+	mount -t \${rootfstype} -o \${ro},\${rootflags} \${root} /newroot || rescue_shell "mount \${root} failed."
 fi
 
 # try 2nd partition on usb
@@ -99,9 +109,8 @@ rescue_shell "end reached"
 EOF
 chmod +x ${INITRAMFS}/init
 
-cd ${INITRAMFS}
-#find . -print0 | cpio --null -ov --format=newc | gzip -9 > /boot/custom-initramfs.cpio.gz
-find . -print | cpio -ov --format=newc | gzip -9 > ${OUTPUT}/custom-initramfs.cpio.gz
 
+cd ${INITRAMFS}
+find . -print | cpio -ov --format=newc | gzip -9 > ${OUTPUT}/custom-initramfs.cpio.gz
 mkimage -A arm -O linux -T ramdisk -a 0x00e00000 -e 0x0 -n "Custom initramfs" -d ${OUTPUT}/custom-initramfs.cpio.gz ${OUTPUT}/uRamdisk
 
