@@ -70,17 +70,25 @@ done
 
 # try to mount the root filesystem.
 if [ "\${root}"x != "/dev/ram"x ]; then
-
 	mount -t \${rootfstype} -o \${ro},\${rootflags} \${root} /newroot || rescue_shell "mount \${root} failed."
 fi
 
 # try 2nd partition on usb
 if [ ! -x /newroot/\${init} ] && [ ! -h /newroot/\${init} ] && [ -b /dev/sdb1 ] && [ -b /dev/sdb2 ]; then
-	mount -t \${rootfstype} -o \${ro},\${rootflags} /dev/sdb2 /newroot || rescue_shell "mount \${root} failed."
+	mount -t \${rootfstype} -o \${ro},\${rootflags} /dev/sdb2 /newroot
 	if [ ! -x /newroot/\${init} ] && [ ! -h /newroot/\${init} ]; then
 		umount /dev/sdb2
 	fi
 fi
+
+# try 1st partition on hdd
+if [ ! -x /newroot/\${init} ] && [ ! -h /newroot/\${init} ] && [ -b /dev/sda1 ]; then
+	mount -t \${rootfstype} -o \${ro},\${rootflags} /dev/sda1 /newroot
+	if [ ! -x /newroot/\${init} ] && [ ! -h /newroot/\${init} ]; then	
+		umount /dev/sda1
+	fi
+fi
+
 
 # try 3rd partition on hdd
 if [ ! -x /newroot/\${init} ] && [ ! -h /newroot/\${init} ] && [ -b /dev/sda1 ] && [ -b /dev/sda3 ]; then
