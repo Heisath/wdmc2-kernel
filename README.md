@@ -27,7 +27,10 @@
         	This needs to be run on the wdmycloud. So to get your first boot use the uRamdisk provided!
 	- build-debian-rootfs.sh
 		
-		Should create a debian rootfs to use with the mycloud. this is still WIP.
+		You can run this script to generate a debian rootfs suitable for the wdmc. Best to run this in some VM (e.g. Ubuntu).
+		To change the packages, settings and default root password check in the script.
+		
+		The script will tar.gz the rootfs so it is easy to copy and extract on the drive for wdmc. Remember to add the kernel and modules!
 	
 		
 Thanks to AllesterFox (http://anionix.ddns.net/WDMyCloud/WDMyCloud-Gen2/) and https://github.com/Johns-Q/wdmc-gen2
