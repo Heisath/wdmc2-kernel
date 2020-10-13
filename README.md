@@ -28,7 +28,7 @@
 	- build-debian-rootfs.sh
 		
 		You can run this script to generate a debian rootfs suitable for the wdmc. Best to run this in some VM (e.g. Ubuntu).
-		To change the packages, settings and default root password check in the script.
+		To change the packages, settings and default root password check in the script. Also change the fstab to your needs (is included in build script).
 		
 		The script will tar.gz the rootfs so it is easy to copy and extract on the drive for wdmc. Remember to add the kernel and modules!
 	
