@@ -18,7 +18,7 @@ arch='armhf'
 qemu_binary='qemu-arm-static'
 components='main,contrib'
 # Adjust package list here
-includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,bash-completion,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup" 
+includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,bash-completion,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base" 
 mirror_addr="http://httpredir.debian.org/debian/"
 
 # Adjust default root pw
@@ -75,6 +75,9 @@ chroot "${rootfs}" /bin/bash -c "apt-get -y clean"
 
 # set root password
 chroot "${rootfs}" /bin/bash -c "(echo ${root_pw};echo ${root_pw};) | passwd root >/dev/null 2>&1"
+
+# permit root login via SSH for the first boot
+sed -i 's/#\?PermitRootLogin .*/PermitRootLogin yes/' "${rootfs}"/etc/ssh/sshd_config
 
 # create fstab, adjust for your layout here
 cat << EOF > ${rootfs}/etc/fstab
