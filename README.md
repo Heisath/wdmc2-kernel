@@ -11,12 +11,14 @@
 		- required gcc compiler is incuded in case you need it
 		- edit build_kernel_image.sh , adjust KERNEL_VERSION to match desired kernel version from kernel.org
 		- run build_kernel_image.sh
-		- it will:
+		- the script will:
 			- git clone and checkout the kernel 
 			- insert kernel-config and device tree into kernel
 			- try making it with menuconfig 
 			- attach dtb to zImage then mkimage
-		- copy uImage to /boot of your boot partition
+		- you have to:
+			- check the output/boot and output/modules directory for your generated files
+			- copy/rename uImage-KERNELVERSION to /boot/uImage of your boot partition
 
 	- build_initramfs.sh
 		
