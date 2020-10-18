@@ -18,7 +18,7 @@ arch='armhf'
 qemu_binary='qemu-arm-static'
 components='main,contrib'
 # Adjust package list here
-includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,bash-completion,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base" 
+includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,bash-completion,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,htop" 
 mirror_addr="http://httpredir.debian.org/debian/"
 
 # Adjust default root pw
@@ -26,6 +26,10 @@ root_pw='1234'
 
 # Adjust hostname here
 def_hostname='wdmycloud'
+
+
+################################################################################
+
 
 # cleanup old
 rm -rf "${rootfs}"
@@ -58,6 +62,27 @@ mount -t sysfs chsys "${rootfs}"/sys
 mount -t devtmpfs chdev "${rootfs}"/dev || mount --bind /dev "${rootfs}"/dev
 mount -t devpts chpts "${rootfs}"/dev/pts
 
+echo "### Addings sources list and updating"
+cat << EOF > ${rootfs}/etc/apt/sources.list
+###
+deb http://httpredir.debian.org/debian buster main contrib non-free
+deb-src http://httpredir.debian.org/debian buster main contrib non-free
+
+deb http://httpredir.debian.org/debian-security/ buster/updates main contrib non-free
+deb-src http://httpredir.debian.org/debian-security/ buster/updates main contrib non-free
+
+deb http://httpredir.debian.org/debian buster-updates main contrib non-free
+deb-src http://httpredir.debian.org/debian buster-updates main contrib non-free
+
+deb http://httpredir.debian.org/debian buster-backports main contrib non-free
+deb-src http://httpredir.debian.org/debian buster-backports main contrib non-free
+###
+EOF
+
+chroot "${rootfs}" /bin/bash -c "apt-get -y update"
+chroot "${rootfs}" /bin/bash -c "apt-get -y full-upgrade"
+chroot "${rootfs}" /bin/bash -c "apt-get -y autoremove"
+chroot "${rootfs}" /bin/bash -c "apt-get -y clean"
 
 echo "### Applying tweaks"
 [[ -f "${rootfs}"/etc/locale.gen ]] && sed -i "s/^# en_US.UTF-8/en_US.UTF-8/" "${rootfs}"/etc/locale.gen
@@ -67,13 +92,8 @@ chroot "${rootfs}" /bin/bash -c "dpkg-reconfigure tzdata"
 chroot "${rootfs}" /bin/bash -c "dpkg-reconfigure keyboard-configuration"
 chroot "${rootfs}" /bin/bash -c "/usr/sbin/update-ccache-symlinks"
 
-
-chroot "${rootfs}" /bin/bash -c "apt-get -y update"
-chroot "${rootfs}" /bin/bash -c "apt-get -y full-upgrade"
-chroot "${rootfs}" /bin/bash -c "apt-get -y autoremove"
-chroot "${rootfs}" /bin/bash -c "apt-get -y clean"
-
 # set root password
+echo "### Root password set to ${root_pw}"
 chroot "${rootfs}" /bin/bash -c "(echo ${root_pw};echo ${root_pw};) | passwd root >/dev/null 2>&1"
 
 # permit root login via SSH for the first boot
@@ -138,6 +158,7 @@ iface eth0 inet dhcp
 #       netmask 255.255.255.0
 #       gateway 192.168.1.1
 #       dns-nameservers 192.168.1.1
+#       dns-search fritz.box
 pre-up /sbin/ethtool -C eth0 pkt-rate-low 20000 pkt-rate-high 3000000 rx-frames 32 rx-usecs 1150 rx-usecs-high 1150 rx-usecs-low 100 rx-frames-low 32 rx-frames-high 32 adaptive-rx on
 EOF
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Required gcc:
-#armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)
-#gcc-arm-none-eabi (downloadable via apt)
+#armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
+#gcc-arm-none-eabi (downloadable via apt / included in git)         FOR KERNEL VERSION >= 5.6
 
-KERNEL_VERSION='5.6'
+KERNEL_VERSION='5.8.16'
 
 # we can never know what aliases may be set, so remove them all
 unalias -a
@@ -35,8 +35,9 @@ cp armada-375-wdmc-gen2.dts linux-$KERNEL_VERSION/arch/arm/boot/dts/
 # cd into linux source
 cd linux-$KERNEL_VERSION
 
-#makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'
-makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'
+
+#makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'    FOR KERNEL VERSION <= 5.6
+makehelp='make CROSS_COMPILE=/opt/gcc-arm-none-eabi/bin/arm-none-eabi- ARCH=arm'                        #FOR KERNEL VERSION >= 5.6
 
 $makehelp menuconfig
 $makehelp -j2 zImage
@@ -52,8 +53,8 @@ cd ..
 
 cp uRamdisk output/boot/
 
-#rm output/lib/modules/$KERNEL_VERSION/source
-#rm output/lib/modules/$KERNEL_VERSION/build
+rm output/lib/modules/*/source
+rm output/lib/modules/*/build
 
 chmod =rwxrxrx output/boot/uRamdisk
 chmod =rwxrxrx output/boot/uImage-$KERNEL_VERSION
