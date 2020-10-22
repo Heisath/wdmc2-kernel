@@ -174,6 +174,9 @@ done
 touch "${rootfs}"/root/.debootstrap-complete
 echo "### Debootstrap complete: ${release}/${arch}"
 
+echo "### You can now adjust the rootfs (for example include a kernel)."
+read -r -p "### Press any key to continue and pack it up..." -n1
+
 cd "${rootfs}"
 
 tar -czf ../"${release}"-rootfs.tar.gz .
