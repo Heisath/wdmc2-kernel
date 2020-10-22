@@ -4,7 +4,7 @@
 #armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
 #gcc-arm-none-eabi (downloadable via apt / included in git)         FOR KERNEL VERSION >= 5.6
 
-KERNEL_VERSION='5.8.16'
+KERNEL_VERSION='5.9.1'
 
 # we can never know what aliases may be set, so remove them all
 unalias -a
@@ -50,6 +50,8 @@ $makehelp modules
 $makehelp INSTALL_MOD_PATH=../output modules_install
 
 cd ..
+
+cp linux-$KERNEL_VERSION/.config output/kernel-$KERNEL_VERSION.config
 
 cp uRamdisk output/boot/
 
