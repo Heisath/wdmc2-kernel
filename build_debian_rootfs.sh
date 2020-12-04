@@ -18,7 +18,7 @@ arch='armhf'
 qemu_binary='qemu-arm-static'
 components='main,contrib'
 # Adjust package list here
-includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,bash-completion,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,htop" 
+includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,bash-completion,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,htop,cpio,u-boot-tools" 
 mirror_addr="http://httpredir.debian.org/debian/"
 
 # Adjust default root pw
@@ -65,17 +65,17 @@ mount -t devpts chpts "${rootfs}"/dev/pts
 echo "### Addings sources list and updating"
 cat << EOF > ${rootfs}/etc/apt/sources.list
 ###
-deb http://httpredir.debian.org/debian buster main contrib non-free
-deb-src http://httpredir.debian.org/debian buster main contrib non-free
+deb http://httpredir.debian.org/debian ${release} main contrib non-free
+deb-src http://httpredir.debian.org/debian ${release} main contrib non-free
 
-deb http://httpredir.debian.org/debian-security/ buster/updates main contrib non-free
-deb-src http://httpredir.debian.org/debian-security/ buster/updates main contrib non-free
+deb http://httpredir.debian.org/debian-security/ ${release}/updates main contrib non-free
+deb-src http://httpredir.debian.org/debian-security/ ${release}/updates main contrib non-free
 
-deb http://httpredir.debian.org/debian buster-updates main contrib non-free
-deb-src http://httpredir.debian.org/debian buster-updates main contrib non-free
+deb http://httpredir.debian.org/debian ${release}-updates main contrib non-free
+deb-src http://httpredir.debian.org/debian ${release}-updates main contrib non-free
 
-deb http://httpredir.debian.org/debian buster-backports main contrib non-free
-deb-src http://httpredir.debian.org/debian buster-backports main contrib non-free
+deb http://httpredir.debian.org/debian ${release}-backports main contrib non-free
+deb-src http://httpredir.debian.org/debian ${release}-backports main contrib non-free
 ###
 EOF
 
@@ -173,6 +173,8 @@ done
 
 touch "${rootfs}"/root/.debootstrap-complete
 echo "### Debootstrap complete: ${release}/${arch}"
+
+cp build_initramfs.sh "${rootfs}"/root/
 
 echo "### You can now adjust the rootfs (for example include a kernel)."
 read -r -p "### Press any key to continue and pack it up..." -n1
