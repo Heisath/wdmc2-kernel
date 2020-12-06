@@ -8,20 +8,33 @@ export LC_ALL=C
 unalias -a
 
 # destination
-OUTPUT=./../output
-INITRAMFS=./initramfs/root
+CURRENT_DIR=$PWD
+INITRAMFS=${CURRENT_DIR}/initramfs
+INITRAMFS_ROOT=${INITRAMFS}/root
+
+if [ "$1" = '--update' ] 
+then 
+    UPDATE_BOOT='yes'
+else
+    UPDATE_BOOT='no'
+fi
+
+echo '### Removing old stuff'
 
 # remove old cruft
 rm -rf ${INITRAMFS}/
 
-mkdir -p ${INITRAMFS}/${OUTPUT}/
+mkdir -p ${INITRAMFS}
+mkdir -p ${INITRAMFS_ROOT}
 
-mkdir -p ${INITRAMFS}/{bin,dev,etc,lib,lib64,newroot,proc,sbin,sys,usr} ${INITRAMFS}/usr/{bin,sbin}
-cp -a /dev/{null,console,tty} ${INITRAMFS}/dev
-cp -a /bin/busybox ${INITRAMFS}/bin/busybox
-cp $(ldd "/bin/busybox" | egrep -o '/.* ') ${INITRAMFS}/lib/
+echo '### Creating initramfs root'
 
-cat << EOF > ${INITRAMFS}/init
+mkdir -p ${INITRAMFS_ROOT}/{bin,dev,etc,lib,lib64,newroot,proc,sbin,sys,usr} ${INITRAMFS_ROOT}/usr/{bin,sbin}
+cp -a /dev/{null,console,tty} ${INITRAMFS_ROOT}/dev
+cp -a /bin/busybox ${INITRAMFS_ROOT}/bin/busybox
+cp $(ldd "/bin/busybox" | egrep -o '/.* ') ${INITRAMFS_ROOT}/lib/
+
+cat << EOF > ${INITRAMFS_ROOT}/init
 #!/bin/busybox sh
 /bin/busybox --install
 
@@ -115,10 +128,29 @@ exec switch_root /newroot \${init} || rescue_shell
 
 rescue_shell "end reached"
 EOF
-chmod +x ${INITRAMFS}/init
+chmod +x ${INITRAMFS_ROOT}/init
 
+echo '### Creating uRamdisk'
 
-cd ${INITRAMFS}
-find . -print | cpio -ov --format=newc | gzip -9 > ${OUTPUT}/custom-initramfs.cpio.gz
-mkimage -A arm -O linux -T ramdisk -a 0x00e00000 -e 0x0 -n "Custom initramfs" -d ${OUTPUT}/custom-initramfs.cpio.gz ${OUTPUT}/uRamdisk
+cd ${INITRAMFS_ROOT}
+find . -print | cpio -ov --format=newc | gzip -9 > ${INITRAMFS}/custom-initramfs.cpio.gz
+mkimage -A arm -O linux -T ramdisk -a 0x00e00000 -e 0x0 -n "Custom initramfs" -d ${INITRAMFS}/custom-initramfs.cpio.gz ${INITRAMFS}/uRamdisk
+
+if [ "$UPDATE_BOOT" = 'yes' ] 
+then 
+    echo '### Updating /boot'
+    if [ -e '/boot/uRamdisk' ] 
+    then
+        mv /boot/uRamdisk /boot/uRamdisk.old
+    fi
+    
+    mv ${INITRAMFS}/uRamdisk /boot/uRamdisk    
+    rm -rf ${INITRAMFS}
+else
+    echo '### Cleanup'
+    rm -rf ${INITRAMFS}/custom-initramfs.cpio.gz
+    rm -rf ${INITRAMFS_ROOT}
+fi
+
+echo '### Done.'
 
