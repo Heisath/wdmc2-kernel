@@ -206,7 +206,7 @@ build_root_fs()
 
     cd "${rootfs_dir}"
     
-    tar -czf "${output_dir}"/"${release}"-rootfs_dir.tar .
+    tar -czf "${output_dir}"/"${release}"-rootfs.tar.gz .
 }
 
 
