@@ -27,13 +27,19 @@
 		needs to be placed in /boot/uRamdisk.
 
         	This needs to be run on the wdmycloud. So to get your first boot use the uRamdisk provided!
+	
 	- build-debian-rootfs.sh
 		
 		You can run this script to generate a debian rootfs suitable for the wdmc. Best to run this in some VM (e.g. Ubuntu).
 		To change the packages, settings and default root password check in the script. Also change the fstab to your needs (is included in build script).
 		
 		The script will tar.gz the rootfs so it is easy to copy and extract on the drive for wdmc. Remember to add the kernel and modules!
-		
+
+	- build.sh
+
+		New combined version for building kernel, rootfs and initramfs at the same time. Check the script for possible parameters.
+		WIP at them moment!
+
 * prerequisites for building 
 	- `apt-get install build-essential libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
 	- gcc for arm eabi (need to adjust build_kernel_image.sh depending on chosen compiler)

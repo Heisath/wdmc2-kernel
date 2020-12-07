@@ -106,7 +106,7 @@ build_root_fs()
 {
     # cleanup old
     rm -rf "${rootfs_dir}"
-    rm -rf "${output_dir}"/"${release}"-rootfs_dir.tz
+    rm -rf "${output_dir}"/"${release}"-rootfs.tar.gz
 
     # generate output directory
     mkdir -p ${rootfs_dir}
@@ -186,6 +186,12 @@ build_root_fs()
         chroot "${rootfs_dir}" /bin/bash -c "/root/build_initramfs.sh --update"
     fi
 
+    if [ ${ALLOW_ROOTFS_CHANGES} = 'yes' ]
+    then 
+        echo "### You can now adjust the rootfs"
+        read -r -p "### Press any key to continue and pack it up..." -n1
+    fi
+
     echo "### Unmounting"
     while grep -Eq "${rootfs_dir}.*(dev|proc|sys)" /proc/mounts
     do
@@ -195,14 +201,9 @@ build_root_fs()
         sleep 5
     done
 
-     touch "${rootfs_dir}"/root/.debootstrap-complete
-     echo "### Debootstrap complete: ${release}/${arch}"
-
-     if [ ${ALLOW_ROOTFS_CHANGES} = 'yes' ]
-     then 
-         echo "### You can now adjust the rootfs_dir"
-         read -r -p "### Press any key to continue and pack it up..." -n1
-     fi
+    touch "${rootfs_dir}"/root/.debootstrap-complete
+    echo "### Debootstrap complete: ${release}/${arch}"
+   
 
     cd "${rootfs_dir}"
     
@@ -289,7 +290,7 @@ echo '### Starting build'
 
 if [ ${BUILD_KERNEL} = 'yes' ] 
 then
-   build_kernel
+    build_kernel
 fi
 if [ ${BUILD_ROOT} = 'yes' ]
 then
