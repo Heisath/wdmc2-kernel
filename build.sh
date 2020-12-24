@@ -28,7 +28,7 @@ root_pw='1234'
 # Adjust hostname here
 def_hostname='wdmycloud'
 
-kernel_version='5.9.1'
+kernel_version='5.9.16'
 
 BUILD_KERNEL='yes'
 BUILD_ROOT='yes'
