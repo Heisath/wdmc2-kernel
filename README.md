@@ -1,51 +1,59 @@
 # WD My Cloud Gen2 aka wdmc-gen2 based on Marvell ARMADA 375 ##
 
 * mainline kernel support
-	tested with 4.18.x / 5.6.x / 5.8.x
-	- device tree source
-		armada-375-wdmc-gen2.dts
-	- kernel config
-		kernel-4.18.19.config, kernel-5.6.config kernel-5.8.16.config kernel-default.config
-	- some tweaks and pointers in txt files
-	- build your own kernel
-		- required gcc compiler is incuded in case you need it
-		- edit build_kernel_image.sh , adjust KERNEL_VERSION to match desired kernel version from kernel.org
-		- run build_kernel_image.sh
-		- the script will:
-			- git clone and checkout the kernel 
-			- insert kernel-config and device tree into kernel
-			- try making it with menuconfig 
-			- attach dtb to zImage then mkimage
-		- you have to:
-			- check the output/boot and output/modules directory for your generated files
-			- copy/rename uImage-KERNELVERSION to /boot/uImage of your boot partition
-
-	- build_initramfs.sh
-		
-		builds a minimal initramfs.  Can boot from kernel commandline,
-		usb-stick 2nd partition, hdd 3rd partition.
-		needs to be placed in /boot/uRamdisk.
-
-        	This needs to be run on the wdmycloud. So to get your first boot use the uRamdisk provided!
+	tested with 4.18.x / 5.6.x / 5.10.x
+	- device tree source ./dts/armada-375-wdmc-gen2.dts
+	- kernel config for various kernels included check ./config/
+	- some tweaks and pointers in txt files ./docs/
+	- toolchain for building is included as txz ./toolchain/ you might need to install this 
 	
-	- build-debian-rootfs.sh
-		
-		You can run this script to generate a debian rootfs suitable for the wdmc. Best to run this in some VM (e.g. Ubuntu).
-		To change the packages, settings and default root password check in the script. Also change the fstab to your needs (is included in build script).
-		
-		The script will tar.gz the rootfs so it is easy to copy and extract on the drive for wdmc. Remember to add the kernel and modules!
-
-	- build.sh
-
-		New combined version for building kernel, rootfs and initramfs at the same time. Check the script for possible parameters.
-		WIP at them moment!
-
 * prerequisites for building 
 	- `apt-get install build-essential libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
 	- gcc for arm eabi (need to adjust build_kernel_image.sh depending on chosen compiler)
 		- extract the gcc/glibc archive to /opt
 		- OR
 		- `apt-get install gcc-arm-none-eabi`
+
+* build.sh
+	- New way of building a kernel, rootfs and uRamdisk
+	- run build.sh as root (or with sudo)
+	- possible parameters are:
+		- `--release {debianrelease}` to select the debian release to use as rootfs
+		- `--root-pw {rootpw}` to select root pw for new rootfs
+		- `--hostname {host}` to select hostname for new rootfs
+		- `--kernel {version}` to select kernel version to build
+		- `--kernelonly` to only build the kernel (without uRamdisk and rootfs)
+		- `--rootonly` to only build the rootfs (without kernel and uRamdisk)
+		- `--nokernel` to only build the rootfs + uRamdisk
+		- `--noinitramfs` to build kernel and rootfs without uRamdisk
+		- `--changes` to pause and wait for changes in the rootfs before unmounting and packaging (this allows you to do customization)
+		- if a parameters is not given, the default value is used. Check in build.sh for default and other usage
+	- if building a rootfs build.sh will include the tweaks from ./tweaks/  You can adjust fstab and various other stuff there
+	
+	- Depending on the selected actions the script will:
+		- for the kernel: 
+			- git clone and checkout the kernel 
+			- insert kernel-config and device tree into kernel
+			- try making it with menuconfig 
+			- attach dtb to zImage then mkimage
+			- place the results in ./output/boot and ./output/modules
+		- for the rootfs:
+			- use debootstrap to generate a debian rootfs in ./output/rootfs/
+			- apply the tweaks and setup some useful programs via apt
+			- copy the results from kernel making into the right folders (boot and lib)
+			- if building initramfs is enabled it will also:
+				- run build_initramfs.sh in the chroot and generate a new uRamdisk 
+			- pack the rootfs into a tar.gz so you can easily extract it on your usb/hdd
+			
+* build_initramfs.sh
+		
+	builds a minimal initramfs.  Can boot from kernel commandline,
+	usb-stick 2nd partition, hdd 3rd partition.
+	needs to be placed in /boot/uRamdisk.
+
+       	This needs to be run on the wdmycloud. So to get your first boot use the uRamdisk provided!
+	Or use the build.sh and also create a rootfs on your Host to chroot and run this in.
+		
 
 * general install instructions
 
