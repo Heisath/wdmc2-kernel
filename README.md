@@ -8,11 +8,12 @@
 	- toolchain for building is included as txz ./toolchain/ you might need to install this 
 	
 * prerequisites for building 
-	- `apt-get install build-essential libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
-	- gcc for arm eabi (need to adjust build_kernel_image.sh depending on chosen compiler)
+	- `apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
+	- gcc for arm eabi 
 		- extract the gcc/glibc archive to /opt
 		- OR
 		- `apt-get install gcc-arm-none-eabi`
+		- adjust the path to the gcc in build.sh
 
 * build.sh
 	- New way of building a kernel, rootfs and uRamdisk
