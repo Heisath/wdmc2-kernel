@@ -62,6 +62,7 @@ BUILD_ROOT='yes'
 BUILD_INITRAMFS='yes'
 ALLOW_ROOTFS_CHANGES='no'
 CLEAN_KERNEL_SRC='yes'
+ALLOW_KERNEL_CONFIG_CHANGES='yes'
 
 build_kernel() 
 {
@@ -83,7 +84,7 @@ build_kernel()
     
   
     if [ ! -d ${kernel_dir} ]; then
-        echo "### Kernel dir does not exist, cloning kernel..."
+        echo "### Kernel dir does not exist, cloning kernel"
         
         mkdir -p "${kernel_dir}"
         
@@ -91,7 +92,7 @@ build_kernel()
         git clone --branch "$kernel_branch" --depth 1 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git "${kernel_dir}"
     else
         if [ ${CLEAN_KERNEL_SRC} = 'yes' ]; then
-            echo "### Kernel dir does exist. Fetching and cleaning..."
+            echo "### Kernel dir does exist. Fetching and cleaning"
             echo "### If you want to skip this step provide --noclean"
             
             cd ${kernel_dir}
@@ -118,50 +119,67 @@ build_kernel()
         cp config/linux-default.config ${kernel_config}
     fi
 
-    cp ${kernel_config} ${kernel_dir}/.config
-    cp dts/*.dts ${kernel_dir}/arch/arm/boot/dts/
+    cp "${kernel_config}" "${kernel_dir}"/.config
+    cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/
 
     kernel_version=$(grab_version "${kernel_dir}");
 
     # cd into linux source
-    cd ${kernel_dir}
+    cd "${kernel_dir}"
 
     echo "### Starting make"
 
-
-
-    $makehelp menuconfig
+    if [ ${ALLOW_KERNEL_CONFIG_CHANGES} = 'yes' ]; then
+        $makehelp menuconfig
+    fi
     $makehelp -j8 zImage
     $makehelp -j8 armada-375-wdmc-gen2.dtb
     cat arch/arm/boot/zImage arch/arm/boot/dts/armada-375-wdmc-gen2.dtb > zImage_and_dtb
-    mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n 'WDMC-Gen2' -d zImage_and_dtb "${boot_dir}"/uImage-$kernel_version
+    mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n 'WDMC-Gen2' -d zImage_and_dtb "${boot_dir}"/uImage-${kernel_version}
     rm zImage_and_dtb
 
     $makehelp -j8 modules
     $makehelp -j8 INSTALL_MOD_PATH="${output_dir}" modules_install
 
-    cd ${current_dir}
+    cd "${current_dir}"
 
     echo "### Copying new kernel config to output"
-    cp ${kernel_dir}/.config "${output_dir}"/kernel-$kernel_version.config
+    cp "${kernel_dir}"/.config "${output_dir}"/linux-${kernel_version}.config
 
     echo "### Adding default ramdisk to output"
     cp prebuilt/uRamdisk "${boot_dir}"
 
-    echo "### Cleanup" 
+    # set permissions for later runnable files
+    chmod =rwxrxrx "${boot_dir}"/uRamdisk
+    chmod =rwxrxrx "${boot_dir}"/uImage-${kernel_version}
+    
+    cp "${boot_dir}"/uImage-${kernel_version} "${boot_dir}"/uImage
+
+    echo "### Cleanup and tar results" 
     rm "${output_dir}"/lib/modules/*/source
     rm "${output_dir}"/lib/modules/*/build
 
-    # set permissions for later runnable files
-    chmod =rwxrxrx "${boot_dir}"/uRamdisk
-    chmod =rwxrxrx "${boot_dir}"/uImage-$kernel_version
-  
+    # tar and compress modules for easier transport
+    cd "${output_dir}"/lib/modules/
+    tar -czf "${output_dir}"/modules-${kernel_version}.tar.gz "${kernel_version}"
+    
+    cd "${output_dir}"
+    tar -czf "${output_dir}"/boot-${kernel_version}.tar.gz boot/uRamdisk boot/uImage-${kernel_version} boot/uImage
+    
+    rm "${boot_dir}"/uImage
+    
+    cd "${current_dir}"
+   
+    echo "### Finishing"
     # fix permissions on folders for usability
     chown "root:sudo" "${cache_dir}"
     chown "root:sudo" "${output_dir}"
     chown -R "root:sudo" "${boot_dir}"
     chown "root:sudo" "${output_dir}"/lib
-    chown "${current_user}:sudo" "${output_dir}"/linux-$kernel_version.config
+    
+    chown "${current_user}:sudo" "${output_dir}"/linux-${kernel_version}.config
+    chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}.tar.gz
+    chown "${current_user}:sudo" "${output_dir}"/boot-${kernel_version}.tar.gz
 
     chmod "g+rw" "${cache_dir}"    
     chmod "g+rw" "${output_dir}"
@@ -317,6 +335,11 @@ do
             CLEAN_KERNEL_SRC='no'
             shift;
         ;;
+        --noconfig)
+            ALLOW_KERNEL_CONFIG_CHANGES='no'
+            shift;
+        ;;
+        
         --kernelonly)
             BUILD_ROOT='no'
             BUILD_INITRAMFS='no'

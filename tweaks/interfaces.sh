@@ -18,5 +18,5 @@ iface eth0 inet dhcp
 #       gateway 192.168.1.1
 #       dns-nameservers 192.168.1.1
 #       dns-search fritz.box
-#pre-up /sbin/ethtool -C eth0 pkt-rate-low 20000 pkt-rate-high 3000000 rx-frames 32 rx-usecs 1150 rx-usecs-high 1150 rx-usecs-low 100 rx-frames-low 32 rx-frames-high 32 adaptive-rx on
+pre-up /sbin/ethtool -C eth0 rx-frames 32 rx-usecs 1150 
 EOF
