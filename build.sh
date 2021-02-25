@@ -7,11 +7,29 @@ exit_with_error()
     echo $1
     exit 1
 }
+grab_version()
+{
+	local ver=()
+	ver[0]=$(grep "^VERSION" "${1}"/Makefile | head -1 | awk '{print $(NF)}' | grep -oE '^[[:digit:]]+')
+	ver[1]=$(grep "^PATCHLEVEL" "${1}"/Makefile | head -1 | awk '{print $(NF)}' | grep -oE '^[[:digit:]]+')
+	ver[2]=$(grep "^SUBLEVEL" "${1}"/Makefile | head -1 | awk '{print $(NF)}' | grep -oE '^[[:digit:]]+')
+	ver[3]=$(grep "^EXTRAVERSION" "${1}"/Makefile | head -1 | awk '{print $(NF)}' | grep -oE '^-rc[[:digit:]]+')
+	echo "${ver[0]:-0}${ver[1]:+.${ver[1]}}${ver[2]:+.${ver[2]}}${ver[3]}"
+}
 
-current_dir=$PWD
+current_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
+# check for whitespace in ${current_dir} and exit for safety reasons
+grep -q "[[:space:]]" <<<"${current_dir}" && { echo "\"${current_dir}\" contains whitespace. Aborting." >&2 ; exit 1 ; }
+
+cd "${current_dir}" || exit
+
 output_dir="${current_dir}/output"
 rootfs_dir="${output_dir}/rootfs"
 boot_dir="${output_dir}/boot"
+cache_dir="${current_dir}/cache"
+
+current_user="$(stat --format %U "${current_dir}"/.git)"
 
 #Required gcc:
 #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
@@ -37,46 +55,80 @@ root_pw='1234'
 # Adjust hostname here
 def_hostname='wdmycloud'
 
-kernel_version='5.9.16'
+kernel_branch='linux-5.10.y'
 
 BUILD_KERNEL='yes'
 BUILD_ROOT='yes'
 BUILD_INITRAMFS='yes'
 ALLOW_ROOTFS_CHANGES='no'
+CLEAN_KERNEL_SRC='yes'
 
 build_kernel() 
 {
     
     # do preparation steps
-    echo "### Cloning linux kernel $kernel_version"
+    echo "### Cloning linux kernel $kernel_branch"
+
+    if [[ $kernel_branch == *linux* ]]; then
+        kernel_dir="${cache_dir}/$kernel_branch";
+        kernel_config="config/$kernel_branch.config";
+    else
+        kernel_dir="${cache_dir}/linux-$kernel_branch";
+        kernel_config="config/linux-$kernel_branch.config";
+    fi
 
     # generate output directory
     mkdir -p "${output_dir}"
     mkdir -p "${boot_dir}"
-
-    if [ ! -d linux-$kernel_version ]; then
+    
+  
+    if [ ! -d ${kernel_dir} ]; then
+        echo "### Kernel dir does not exist, cloning kernel..."
+        
+        mkdir -p "${kernel_dir}"
+        
         # git clone linux tree
-        git clone --branch "v$kernel_version" --depth 1 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+        git clone --branch "$kernel_branch" --depth 1 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git "${kernel_dir}"
+    else
+        if [ ${CLEAN_KERNEL_SRC} = 'yes' ]; then
+            echo "### Kernel dir does exist. Fetching and cleaning..."
+            echo "### If you want to skip this step provide --noclean"
+            
+            cd ${kernel_dir}
+            
+            git fetch --depth 1 origin "$kernel_branch"
+        
+            git checkout -f -q FETCH_HEAD
+            git clean -qdf
+            
+            cd ${current_dir}
+        else 
+            echo "### Kernel dir does exist. --noclean provided"
+            echo "### Continuing with dirty kernel src"
 
-        # rename directory
-        mv linux-stable linux-$kernel_version
+        fi
+
     fi
+      
 
     # copy config and dts
     echo "### Moving kernel config in place"
 
-    if [ ! -f config/kernel-$kernel_version.config ]; then
-        cp config/kernel-default.config config/kernel-$kernel_version.config
+    if [ ! -f ${kernel_config} ]; then
+        cp config/linux-default.config ${kernel_config}
     fi
 
-    cp config/kernel-$kernel_version.config linux-$kernel_version/.config
-    cp dts/*.dts linux-$kernel_version/arch/arm/boot/dts/
+    cp ${kernel_config} ${kernel_dir}/.config
+    cp dts/*.dts ${kernel_dir}/arch/arm/boot/dts/
 
+    kernel_version=$(grab_version "${kernel_dir}");
 
     # cd into linux source
-    cd linux-$kernel_version
+    cd ${kernel_dir}
 
     echo "### Starting make"
+
+
 
     $makehelp menuconfig
     $makehelp -j8 zImage
@@ -91,7 +143,7 @@ build_kernel()
     cd ${current_dir}
 
     echo "### Copying new kernel config to output"
-    cp linux-$kernel_version/.config "${output_dir}"/kernel-$kernel_version.config
+    cp ${kernel_dir}/.config "${output_dir}"/kernel-$kernel_version.config
 
     echo "### Adding default ramdisk to output"
     cp prebuilt/uRamdisk "${boot_dir}"
@@ -100,8 +152,21 @@ build_kernel()
     rm "${output_dir}"/lib/modules/*/source
     rm "${output_dir}"/lib/modules/*/build
 
+    # set permissions for later runnable files
     chmod =rwxrxrx "${boot_dir}"/uRamdisk
     chmod =rwxrxrx "${boot_dir}"/uImage-$kernel_version
+  
+    # fix permissions on folders for usability
+    chown "root:sudo" "${cache_dir}"
+    chown "root:sudo" "${output_dir}"
+    chown -R "root:sudo" "${boot_dir}"
+    chown "root:sudo" "${output_dir}"/lib
+    chown "${current_user}:sudo" "${output_dir}"/linux-$kernel_version.config
+
+    chmod "g+rw" "${cache_dir}"    
+    chmod "g+rw" "${output_dir}"
+    chmod -R "g+rw" "${boot_dir}"
+    chmod "g+rw" "${output_dir}"/lib
 }
 
 build_root_fs() 
@@ -210,8 +275,17 @@ build_root_fs()
     cd "${rootfs_dir}"
     
     tar -czf "${output_dir}"/"${release}"-rootfs.tar.gz .
+    
+    chown "root:sudo" "${rootfs_dir}"
+    chown "root:sudo" "${output_dir}"/"${release}"-rootfs.tar.gz
+    chmod "g+rw" "${rootfs_dir}"
+    chmod "g+rw" "${output_dir}"/"${release}"-rootfs.tar.gz
 }
 
+if [[ "${EUID}" != "0" ]]; then
+	echo "This script requires root privileges, please rerun using sudo"
+	exit 1
+fi
 
 # read command line to replace defaults 
 POSITIONAL=()
@@ -235,11 +309,14 @@ do
             shift; shift;
         ;;
         --kernel)
-            kernel_version=${value}
+            kernel_branch=${value}
             shift; shift;
         ;;
         
-        
+        --noclean) 
+            CLEAN_KERNEL_SRC='no'
+            shift;
+        ;;
         --kernelonly)
             BUILD_ROOT='no'
             BUILD_INITRAMFS='no'
@@ -272,11 +349,11 @@ done
 
 echo '### Build options'
 
-echo "Build dir: $PWD"
+echo "Build dir: ${current_dir}"
 
 if [ ${BUILD_KERNEL} = 'yes' ] 
 then
-    echo "Kernel ${kernel_version}"
+    echo "Kernel ${kernel_branch}"
 fi
 
 if [ ${BUILD_ROOT} = 'yes' ]
@@ -287,7 +364,7 @@ then
 fi
 
 
-sleep 10
+sleep 5
 echo '### Starting build'
 
 if [ ${BUILD_KERNEL} = 'yes' ] 
