@@ -28,7 +28,7 @@ jobs:
       - name: extract toolchain
         run: |
           cd /opt
-          tar -xzf $GITHUB_WORKSPACE/toolchain/gcc-arm-none-eabi.txz
+          tar -xf $GITHUB_WORKSPACE/toolchain/gcc-arm-none-eabi.txz
           cd $GITHUB_WORKSPACE
           ls
       
