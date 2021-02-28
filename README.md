@@ -58,7 +58,7 @@
 	needs to be placed in /boot/uRamdisk.
 
        	This needs to be run on the wdmycloud. So to get your first boot use the uRamdisk provided!
-	Or use the build.sh and also create a rootfs on your Host to chroot and run this in.
+	Or use the build.sh and also create a rootfs on your host to chroot and run this in.
 		
 
 * general install instructions
@@ -67,24 +67,24 @@
 	
 	##### USB:
 
-	create a FAT32 partition (this will be used to boot, will be called sdb1)
-	create a ext4 partition (this will be used as root, will be called sdb2)
-	create a folder called 'boot' on sdb1
-	move the files from release/boot into the boot folder on sdb1. Rename/link the uImage-5.6 file to uImage. Make sure both the uImage and uRamdisk are executable
-	extract the buster-rootfs.tar.gz on the sdb2 partition
-	copy the release/lib/ folder onto the sdb2 partition (to add the 5.6 modules)
-	adjust sdb2/etc/fstab to fit your needs (will probably be ok)
-	boot wdmc with usb stick, root password is '1234', configure/add packages as needed
+	- create a FAT32 partition (this will be used to boot, will be called sdb1)
+	- create a ext4 partition (this will be used as root, will be called sdb2)
+	- create a folder called 'boot' on sdb1
+	- move the files from release/boot into the boot folder on sdb1. Rename/link the uImage-5.6 file to uImage. Make sure both the uImage and uRamdisk are executable
+	- extract the buster-rootfs.tar.gz on the sdb2 partition
+	- copy the release/lib/ folder onto the sdb2 partition (to add the 5.6 modules)
+	- adjust sdb2/etc/fstab to fit your needs (will probably be ok)
+	- boot wdmc with usb stick, root password is '1234', configure/add packages as needed
 	
 	##### Internal:
 
-	create ext4 partition (this should be the third, so /dev/sda3)
-	copy the folder from release/boot into sda3. Rename/link the uImage-5.6 file to uImage. Make sure both the uImage and uRamdisk are executable
-	extract the buster-rootfs.tar.gz on the sda3 partition
-	copy the release/lib/ folder onto the sda3 partition (to add the 5.6 modules)
-	adjust sda3/etc/fstab to fit your needs (you don't need seperate root / boot folders, so adjust this)
-	boot wdmc, root password is '1234', configure/add packages as needed
-	I suggest starting with USB stick, because this requires no changes on the internal harddisk.
+	- create ext4 partition (this should be the third, so /dev/sda3)
+	- copy the folder from release/boot into sda3. Rename/link the uImage-5.6 file to uImage. Make sure both the uImage and uRamdisk are executable
+	- extract the buster-rootfs.tar.gz on the sda3 partition
+	- copy the release/lib/ folder onto the sda3 partition (to add the 5.6 modules)
+	- adjust sda3/etc/fstab to fit your needs (you don't need seperate root / boot folders, so adjust this)
+	- boot wdmc, root password is '1234', configure/add packages as needed
+	- I suggest starting with USB stick, because this requires no changes on the internal harddisk.
 
 	If you need custom initramfs or different kernel settings, check the code and build neccessary files yourself.
 		
