@@ -169,8 +169,7 @@ build_kernel()
     rm "${boot_dir}"/uImage
     
     cd "${current_dir}"
-   
-    echo "### Finishing"
+
     # fix permissions on folders for usability
     chown "root:sudo" "${cache_dir}"
     chown "root:sudo" "${output_dir}"
@@ -194,26 +193,62 @@ build_root_fs()
     rm -rf "${output_dir}"/"${release}"-rootfs.tar.gz
 
     # generate output directory
-    mkdir -p ${rootfs_dir}
+    mkdir -p "${rootfs_dir}"
 
     echo "### Creating build chroot: $release/$arch"
 
-    debootstrap --variant=minbase --arch="${arch}" --foreign --components="${components}" --include="${includes}" "${release}" "${rootfs_dir}" "${mirror_addr}"
-    [[ $? -ne 0 || ! -f "${rootfs_dir}"/debootstrap/debootstrap ]] && exit_with_error "### Create chroot first stage failed"
+    rootfs_cache_valid='no';
+    if [ -f "${cache_dir}"/"${release}"-rootfs-cache.tar.gz ]; then
+        cd "${rootfs_dir}"
+        tar -xzf "${cache_dir}"/"${release}"-rootfs-cache.tar.gz
+        cd "${current_dir}"
+        
+        . "${rootfs_dir}"/root/.debootstrap-info
+        if  [ "${dbs_arch}" = "${arch}" ] && 
+            [ "${dbs_release}" = "${release}" ] && 
+            [ "${dbs_components}" = "${components}" ] &&
+            [ "${dbs_includes}" = "${includes}" ]; then
+            echo "### Found valid rootfs cache"  
+            rootfs_cache_valid='yes';
+        else
+            rm -rf "${rootfs_dir}"
+            mkdir -p "${rootfs_dir}"
+        fi
+    fi
+    
+    if [ ${rootfs_cache_valid} = 'no' ]; then
+        echo "### Creating new rootfs"   
 
-    echo "### First stage completed"
+        debootstrap --variant=minbase --arch="${arch}" --foreign --components="${components}" --include="${includes}" "${release}" "${rootfs_dir}" "${mirror_addr}"
+        [[ $? -ne 0 || ! -f "${rootfs_dir}"/debootstrap/debootstrap ]] && exit_with_error "### Create chroot first stage failed"
 
-    cp /usr/bin/"${qemu_binary}" "${rootfs_dir}"/usr/
+        echo "### First stage completed"
 
-    mkdir -p  "${rootfs_dir}"/usr/share/keyrings/
-    cp /usr/share/keyrings/*-archive-keyring.gpg "${rootfs_dir}"/usr/share/keyrings/
+        cp /usr/bin/"${qemu_binary}" "${rootfs_dir}"/usr/
 
-    echo "### Copied qemu and keyring"
+        mkdir -p  "${rootfs_dir}"/usr/share/keyrings/
+        cp /usr/share/keyrings/*-archive-keyring.gpg "${rootfs_dir}"/usr/share/keyrings/
 
-    chroot "${rootfs_dir}" /bin/bash -c "/debootstrap/debootstrap --second-stage"
-    [[ $? -ne 0 || ! -f "${rootfs_dir}"/bin/bash ]] && exit_with_error "### Create chroot second stage failed"
-    echo "### Second stage completed"
+        echo "### Copied qemu and keyring"
 
+        chroot "${rootfs_dir}" /bin/bash -c "/debootstrap/debootstrap --second-stage"
+        [[ $? -ne 0 || ! -f "${rootfs_dir}"/bin/bash ]] && exit_with_error "### Create chroot second stage failed"
+        echo "### Second stage completed"
+        touch "${rootfs_dir}"/root/.debootstrap-complete
+
+        echo "### Creating rootfs cache for future builds"
+        cat << EOF > "${rootfs_dir}"/root/.debootstrap-info
+#!/bin/bash
+dbs_arch=${arch}
+dbs_release=${release}
+dbs_components=${components}
+dbs_includes=${includes}
+EOF
+        cd "${rootfs_dir}"
+        tar -czf "${cache_dir}"/"${release}"-rootfs-cache.tar.gz .
+        cd "${current_dir}"
+    fi
+    
     echo "### Mounting / preparing chroot"
     mount -t proc chproc "${rootfs_dir}"/proc
     mount -t sysfs chsys "${rootfs_dir}"/sys
@@ -286,10 +321,9 @@ build_root_fs()
         sleep 5
     done
 
-    touch "${rootfs_dir}"/root/.debootstrap-complete
-    echo "### Debootstrap complete: ${release}/${arch}"
+    echo "### Rootfs complete: ${release}/${arch}"
+    echo "### Packing and cleanup"
    
-
     cd "${rootfs_dir}"
     
     tar -czf "${output_dir}"/"${release}"-rootfs.tar.gz .
@@ -298,6 +332,7 @@ build_root_fs()
     chown "root:sudo" "${output_dir}"/"${release}"-rootfs.tar.gz
     chmod "g+rw" "${rootfs_dir}"
     chmod "g+rw" "${output_dir}"/"${release}"-rootfs.tar.gz
+
 }
 
 if [[ "${EUID}" != "0" ]]; then
@@ -398,5 +433,5 @@ if [ ${BUILD_ROOT} = 'yes' ]
 then
    build_root_fs
 fi
-
+echo "### Done"
 
