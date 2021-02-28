@@ -46,7 +46,7 @@ arch='armhf'
 qemu_binary='qemu-arm-static'
 components='main,contrib'
 # Adjust package list here
-includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,cpio,u-boot-tools" 
+includes="ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,cpio,u-boot-tools,bc" 
 mirror_addr="http://httpredir.debian.org/debian/"
 
 # Adjust default root pw
@@ -238,7 +238,6 @@ build_root_fs()
 
         echo "### Creating rootfs cache for future builds"
         cat << EOF > "${rootfs_dir}"/root/.debootstrap-info
-#!/bin/bash
 dbs_arch=${arch}
 dbs_release=${release}
 dbs_components=${components}
@@ -291,6 +290,9 @@ EOF
 
     # Setup interfaces (eth0)
     . tweaks/interfaces.sh
+    
+    # Add files for zram (swap and logging)
+    . tweaks/zram.sh
 
     if [ ${BUILD_KERNEL} = 'yes' ] 
     then

@@ -1,4 +1,5 @@
-# WD My Cloud Gen2 aka wdmc-gen2 based on Marvell ARMADA 375 ##
+# build tools for wdmc-gen2
+## WD My Cloud Gen2 based on Marvell ARMADA 375
 
 * mainline kernel support
 	tested with 4.18.x / 5.6.x / 5.10.x
@@ -6,6 +7,8 @@
 	- kernel config for various kernels included check ./config/
 	- some tweaks and pointers in txt files ./docs/
 	- toolchain for building is included as txz ./toolchain/ you might need to install this 
+	- supports caching of kernel and rootfs so not everything needs to be rebuilt everytime
+	- built rootfs has zram support and uses it for swap and logging
 	
 * prerequisites for building 
 	- `apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
@@ -16,7 +19,7 @@
 		- adjust the path to the gcc in build.sh
 
 * build.sh
-	- New way of building a kernel, rootfs and uRamdisk
+	- provides a way of building a kernel, rootfs and uRamdisk
 	- run build.sh as root (or with sudo)
 	- possible parameters are:
 		- `--release {debianrelease}` to select the debian release to use as rootfs
@@ -28,6 +31,8 @@
 		- `--nokernel` to only build the rootfs + uRamdisk
 		- `--noinitramfs` to build kernel and rootfs without uRamdisk
 		- `--changes` to pause and wait for changes in the rootfs before unmounting and packaging (this allows you to do customization)
+		- `--noclean` to compile kernel without resetting and fetching git
+		- `--noconfig` to skip menuconfig part of kernel
 		- if a parameters is not given, the default value is used. Check in build.sh for default and other usage
 	- if building a rootfs build.sh will include the tweaks from ./tweaks/  You can adjust fstab and various other stuff there
 	
@@ -83,4 +88,5 @@
 
 	If you need custom initramfs or different kernel settings, check the code and build neccessary files yourself.
 		
-Thanks to AllesterFox (http://anionix.ddns.net/WDMyCloud/WDMyCloud-Gen2/) and https://github.com/Johns-Q/wdmc-gen2
+Thanks to AllesterFox (http://anionix.ddns.net/WDMyCloud/WDMyCloud-Gen2/) and https://github.com/Johns-Q/wdmc-gen2 for their original work on the wdmc-gen2 
+And to ARMBIAN (https://github.com/armbian/build) for their awesome build script which gave lots of inspiration and the zram config :)
