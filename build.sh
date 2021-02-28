@@ -2,7 +2,7 @@
 
 unalias -a
 
-exit_with_error() 
+exit_with_error()
 {
     echo $1
     exit 1
@@ -24,6 +24,9 @@ grep -q "[[:space:]]" <<<"${current_dir}" && { echo "\"${current_dir}\" contains
 
 cd "${current_dir}" || exit
 
+############################################################
+### (SUB) DIRECTORIES TO USE
+############################################################
 output_dir="${current_dir}/output"
 rootfs_dir="${output_dir}/rootfs"
 boot_dir="${output_dir}/boot"
@@ -31,16 +34,20 @@ cache_dir="${current_dir}/cache"
 
 current_user="$(stat --format %U "${current_dir}"/.git)"
 
-#Required gcc:
+############################################################
+# Required gcc:
 #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
 #  gcc-arm-none-eabi (downloadable via apt / included in git)         FOR KERNEL VERSION >= 5.6
 # check toolchain subfolder for these or install via apt
-#Adjust makehelp to match path to your gcc:
+# Adjust makehelp to match path to your gcc:
+############################################################
 #makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'   #FOR KERNEL VERSION <= 5.6 (via txz)
 makehelp='make CROSS_COMPILE=/opt/gcc-arm-none-eabi/bin/arm-none-eabi- ARCH=arm'                        #FOR KERNEL VERSION >= 5.6 (via txz)
 #makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
 
-# default config values
+############################################################
+### CONFIG VALUES FOR THE CREATED ROOTFS AND KERNEL
+############################################################
 release='buster'
 arch='armhf'
 qemu_binary='qemu-arm-static'
@@ -55,18 +62,24 @@ root_pw='1234'
 # Adjust hostname here
 def_hostname='wdmycloud'
 
+# Default kernel branch
 kernel_branch='linux-5.10.y'
 
+############################################################
+### PARAMETERS CHANING THE BEHAVIOUR OF THIS SCRIPT
+############################################################
+THREADS=8
+#GHRUNNER='no'
 BUILD_KERNEL='yes'
 BUILD_ROOT='yes'
 BUILD_INITRAMFS='yes'
 ALLOW_ROOTFS_CHANGES='no'
 CLEAN_KERNEL_SRC='yes'
 ALLOW_KERNEL_CONFIG_CHANGES='yes'
+NO_SUDO='no'
 
-build_kernel() 
+build_kernel()
 {
-    
     # do preparation steps
     echo "### Cloning linux kernel $kernel_branch"
 
@@ -81,36 +94,36 @@ build_kernel()
     # generate output directory
     mkdir -p "${output_dir}"
     mkdir -p "${boot_dir}"
-    
-  
+
+
     if [ ! -d ${kernel_dir} ]; then
         echo "### Kernel dir does not exist, cloning kernel"
-        
+
         mkdir -p "${kernel_dir}"
-        
+
         # git clone linux tree
         git clone --branch "$kernel_branch" --depth 1 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git "${kernel_dir}"
     else
         if [ ${CLEAN_KERNEL_SRC} = 'yes' ]; then
             echo "### Kernel dir does exist. Fetching and cleaning"
             echo "### If you want to skip this step provide --noclean"
-            
+
             cd ${kernel_dir}
-            
+
             git fetch --depth 1 origin "$kernel_branch"
-        
+
             git checkout -f -q FETCH_HEAD
             git clean -qdf
-            
+
             cd ${current_dir}
-        else 
+        else
             echo "### Kernel dir does exist. --noclean provided"
             echo "### Continuing with dirty kernel src"
 
         fi
 
     fi
-      
+
 
     # copy config and dts
     echo "### Moving kernel config in place"
@@ -132,14 +145,14 @@ build_kernel()
     if [ ${ALLOW_KERNEL_CONFIG_CHANGES} = 'yes' ]; then
         $makehelp menuconfig
     fi
-    $makehelp -j8 zImage
-    $makehelp -j8 armada-375-wdmc-gen2.dtb
+    $makehelp -j${THREADS} zImage
+    $makehelp -j${THREADS} armada-375-wdmc-gen2.dtb
     cat arch/arm/boot/zImage arch/arm/boot/dts/armada-375-wdmc-gen2.dtb > zImage_and_dtb
     mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n 'WDMC-Gen2' -d zImage_and_dtb "${boot_dir}"/uImage-${kernel_version}
     rm zImage_and_dtb
 
-    $makehelp -j8 modules
-    $makehelp -j8 INSTALL_MOD_PATH="${output_dir}" modules_install
+    $makehelp -j${THREADS} modules
+    $makehelp -j${THREADS} INSTALL_MOD_PATH="${output_dir}" modules_install
 
     cd "${current_dir}"
 
@@ -152,41 +165,43 @@ build_kernel()
     # set permissions for later runnable files
     chmod =rwxrxrx "${boot_dir}"/uRamdisk
     chmod =rwxrxrx "${boot_dir}"/uImage-${kernel_version}
-    
+
     cp "${boot_dir}"/uImage-${kernel_version} "${boot_dir}"/uImage
 
-    echo "### Cleanup and tar results" 
+    echo "### Cleanup and tar results"
     rm "${output_dir}"/lib/modules/*/source
     rm "${output_dir}"/lib/modules/*/build
 
     # tar and compress modules for easier transport
     cd "${output_dir}"/lib/modules/
     tar -czf "${output_dir}"/modules-${kernel_version}.tar.gz "${kernel_version}"
-    
+
     cd "${output_dir}"
     tar -czf "${output_dir}"/boot-${kernel_version}.tar.gz boot/uRamdisk boot/uImage-${kernel_version} boot/uImage
-    
+
     rm "${boot_dir}"/uImage
-    
+
     cd "${current_dir}"
 
-    # fix permissions on folders for usability
-    chown "root:sudo" "${cache_dir}"
-    chown "root:sudo" "${output_dir}"
-    chown -R "root:sudo" "${boot_dir}"
-    chown "root:sudo" "${output_dir}"/lib
-    
-    chown "${current_user}:sudo" "${output_dir}"/linux-${kernel_version}.config
-    chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}.tar.gz
-    chown "${current_user}:sudo" "${output_dir}"/boot-${kernel_version}.tar.gz
+    if [[ $NO_SUDO != 'yes' ]]; then
+    	# fix permissions on folders for usability
+    	sudo chown "root:sudo" "${cache_dir}"
+    	sudo chown "root:sudo" "${output_dir}"
+    	sudo chown -R "root:sudo" "${boot_dir}"
+    	sudo chown "root:sudo" "${output_dir}"/lib
 
-    chmod "g+rw" "${cache_dir}"    
-    chmod "g+rw" "${output_dir}"
-    chmod -R "g+rw" "${boot_dir}"
-    chmod "g+rw" "${output_dir}"/lib
+    	sudo chown "${current_user}:sudo" "${output_dir}"/linux-${kernel_version}.config
+    	sudo chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}.tar.gz
+    	sudo chown "${current_user}:sudo" "${output_dir}"/boot-${kernel_version}.tar.gz
+
+    	sudo chmod "g+rw" "${cache_dir}"
+    	sudo chmod "g+rw" "${output_dir}"
+    	sudo chmod -R "g+rw" "${boot_dir}"
+    	sudo chmod "g+rw" "${output_dir}"/lib
+    fi
 }
 
-build_root_fs() 
+build_root_fs()
 {
     # cleanup old
     rm -rf "${rootfs_dir}"
@@ -202,22 +217,22 @@ build_root_fs()
         cd "${rootfs_dir}"
         tar -xzf "${cache_dir}"/"${release}"-rootfs-cache.tar.gz
         cd "${current_dir}"
-        
+
         . "${rootfs_dir}"/root/.debootstrap-info
-        if  [ "${dbs_arch}" = "${arch}" ] && 
-            [ "${dbs_release}" = "${release}" ] && 
+        if  [ "${dbs_arch}" = "${arch}" ] &&
+            [ "${dbs_release}" = "${release}" ] &&
             [ "${dbs_components}" = "${components}" ] &&
             [ "${dbs_includes}" = "${includes}" ]; then
-            echo "### Found valid rootfs cache"  
+            echo "### Found valid rootfs cache"
             rootfs_cache_valid='yes';
         else
             rm -rf "${rootfs_dir}"
             mkdir -p "${rootfs_dir}"
         fi
     fi
-    
+
     if [ ${rootfs_cache_valid} = 'no' ]; then
-        echo "### Creating new rootfs"   
+        echo "### Creating new rootfs"
 
         debootstrap --variant=minbase --arch="${arch}" --foreign --components="${components}" --include="${includes}" "${release}" "${rootfs_dir}" "${mirror_addr}"
         [[ $? -ne 0 || ! -f "${rootfs_dir}"/debootstrap/debootstrap ]] && exit_with_error "### Create chroot first stage failed"
@@ -247,7 +262,7 @@ EOF
         tar -czf "${cache_dir}"/"${release}"-rootfs-cache.tar.gz .
         cd "${current_dir}"
     fi
-    
+
     echo "### Mounting / preparing chroot"
     mount -t proc chproc "${rootfs_dir}"/proc
     mount -t sysfs chsys "${rootfs_dir}"/sys
@@ -290,11 +305,11 @@ EOF
 
     # Setup interfaces (eth0)
     . tweaks/interfaces.sh
-    
+
     # Add files for zram (swap and logging)
     . tweaks/zram.sh
 
-    if [ ${BUILD_KERNEL} = 'yes' ] 
+    if [ ${BUILD_KERNEL} = 'yes' ]
     then
         cp "${boot_dir}"/uRamdisk "${rootfs_dir}"/boot/
         cp "${boot_dir}"/uImage-$kernel_version "${rootfs_dir}"/boot/
@@ -309,7 +324,7 @@ EOF
     fi
 
     if [ ${ALLOW_ROOTFS_CHANGES} = 'yes' ]
-    then 
+    then
         echo "### You can now adjust the rootfs"
         read -r -p "### Press any key to continue and pack it up..." -n1
     fi
@@ -325,11 +340,11 @@ EOF
 
     echo "### Rootfs complete: ${release}/${arch}"
     echo "### Packing and cleanup"
-   
+
     cd "${rootfs_dir}"
-    
+
     tar -czf "${output_dir}"/"${release}"-rootfs.tar.gz .
-    
+
     chown "root:sudo" "${rootfs_dir}"
     chown "root:sudo" "${output_dir}"/"${release}"-rootfs.tar.gz
     chmod "g+rw" "${rootfs_dir}"
@@ -337,19 +352,14 @@ EOF
 
 }
 
-if [[ "${EUID}" != "0" ]]; then
-	echo "This script requires root privileges, please rerun using sudo"
-	exit 1
-fi
 
-# read command line to replace defaults 
+# read command line to replace defaults
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
     key="$1"
     value="$2"
 
-    DEBUG=0
     case $key in
         --release)
             release=${value}
@@ -359,7 +369,7 @@ do
             root_pw=${value}
             shift; shift
         ;;
-        --hostname) 
+        --hostname)
             def_hostname=${value}
             shift; shift;
         ;;
@@ -367,8 +377,8 @@ do
             kernel_branch=${value}
             shift; shift;
         ;;
-        
-        --noclean) 
+
+        --noclean)
             CLEAN_KERNEL_SRC='no'
             shift;
         ;;
@@ -376,7 +386,7 @@ do
             ALLOW_KERNEL_CONFIG_CHANGES='no'
             shift;
         ;;
-        
+
         --kernelonly)
             BUILD_ROOT='no'
             BUILD_INITRAMFS='no'
@@ -396,10 +406,25 @@ do
             shift;
         ;;
 
-        --changes) 
+        --changes)
             ALLOW_ROOTFS_CHANGES='yes'
             shift;
         ;;
+	--nosudo)
+	    NO_SUDO='yes'
+	    shift;
+	;;
+
+	--ghrunner)
+	    BUILD_KERNEL='yes'
+	    BUILD_INITRAMFS='no'
+	    BUILD_ROOT='no'
+	    #GHRUNNER='yes'
+	    THREADS=2
+	    ALLOW_KERNEL_CONFIG_CHANGES='no'
+#	    NO_SUDO='yes'
+	    shift;
+	;;
         *)    # unknown option
             POSITIONAL+=("$1") # save it in an array for later
             shift # past argument
@@ -407,11 +432,17 @@ do
     esac
 done
 
+if [[ "${EUID}" != "0" ]] && [[ $NO_SUDO != 'yes' ]]; then
+        echo "This script requires root privileges, please rerun using sudo"
+	sudo true
+        #exit 1
+fi
+
 echo '### Build options'
 
 echo "Build dir: ${current_dir}"
 
-if [ ${BUILD_KERNEL} = 'yes' ] 
+if [ ${BUILD_KERNEL} = 'yes' ]
 then
     echo "Kernel ${kernel_branch}"
 fi
@@ -427,7 +458,7 @@ fi
 sleep 5
 echo '### Starting build'
 
-if [ ${BUILD_KERNEL} = 'yes' ] 
+if [ ${BUILD_KERNEL} = 'yes' ]
 then
     build_kernel
 fi
