@@ -186,9 +186,9 @@ build_kernel()
         return
     fi
 
-   	# fix permissions on folders for usability
-  	chown "root:sudo" "${cache_dir}"
-  	chown "root:sudo" "${cache_dir}"/*
+    # fix permissions on folders for usability
+    chown "root:sudo" "${cache_dir}"
+    chown "root:sudo" "${cache_dir}"/*
   	
     chown "root:sudo" "${output_dir}"
     chown -R "root:sudo" "${boot_dir}"
@@ -424,7 +424,7 @@ do
 	    BUILD_KERNEL='yes'
 	    BUILD_INITRAMFS='no'
 	    BUILD_ROOT='no'
-        GHRUNNER='yes'
+            GHRUNNER='yes'
 	    THREADS=2
 	    ALLOW_KERNEL_CONFIG_CHANGES='no'
 	    shift;
