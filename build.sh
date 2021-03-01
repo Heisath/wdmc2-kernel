@@ -69,14 +69,13 @@ kernel_branch='linux-5.10.y'
 ### PARAMETERS CHANING THE BEHAVIOUR OF THIS SCRIPT
 ############################################################
 THREADS=8
-#GHRUNNER='no'
+GHRUNNER='no'
 BUILD_KERNEL='yes'
 BUILD_ROOT='yes'
 BUILD_INITRAMFS='yes'
 ALLOW_ROOTFS_CHANGES='no'
 CLEAN_KERNEL_SRC='yes'
 ALLOW_KERNEL_CONFIG_CHANGES='yes'
-NO_SUDO='no'
 
 build_kernel()
 {
@@ -182,23 +181,29 @@ build_kernel()
     rm "${boot_dir}"/uImage
 
     cd "${current_dir}"
-
-    if [[ $NO_SUDO != 'yes' ]]; then
-    	# fix permissions on folders for usability
-    	sudo chown "root:sudo" "${cache_dir}"
-    	sudo chown "root:sudo" "${output_dir}"
-    	sudo chown -R "root:sudo" "${boot_dir}"
-    	sudo chown "root:sudo" "${output_dir}"/lib
-
-    	sudo chown "${current_user}:sudo" "${output_dir}"/linux-${kernel_version}.config
-    	sudo chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}.tar.gz
-    	sudo chown "${current_user}:sudo" "${output_dir}"/boot-${kernel_version}.tar.gz
-
-    	sudo chmod "g+rw" "${cache_dir}"
-    	sudo chmod "g+rw" "${output_dir}"
-    	sudo chmod -R "g+rw" "${boot_dir}"
-    	sudo chmod "g+rw" "${output_dir}"/lib
+    
+    if [[ $GHRUNNER == 'yes' ]]; then
+        return
     fi
+
+   	# fix permissions on folders for usability
+  	chown "root:sudo" "${cache_dir}"
+  	chown "root:sudo" "${cache_dir}"/*
+  	
+    chown "root:sudo" "${output_dir}"
+    chown -R "root:sudo" "${boot_dir}"
+    chown "root:sudo" "${output_dir}"/lib
+
+    chown "${current_user}:sudo" "${output_dir}"/linux-${kernel_version}.config
+    chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}.tar.gz
+    chown "${current_user}:sudo" "${output_dir}"/boot-${kernel_version}.tar.gz
+
+    chmod "g+rw" "${cache_dir}"
+    chmod "g+rw" "${cache_dir}"/*
+    chmod "g+rw" "${output_dir}"
+    chmod -R "g+rw" "${boot_dir}"
+    chmod "g+rw" "${output_dir}"/lib
+    
 }
 
 build_root_fs()
@@ -419,10 +424,9 @@ do
 	    BUILD_KERNEL='yes'
 	    BUILD_INITRAMFS='no'
 	    BUILD_ROOT='no'
-	    #GHRUNNER='yes'
+        GHRUNNER='yes'
 	    THREADS=2
 	    ALLOW_KERNEL_CONFIG_CHANGES='no'
-#	    NO_SUDO='yes'
 	    shift;
 	;;
         *)    # unknown option
@@ -432,10 +436,9 @@ do
     esac
 done
 
-if [[ "${EUID}" != "0" ]] && [[ $NO_SUDO != 'yes' ]]; then
-        echo "This script requires root privileges, please rerun using sudo"
-	sudo true
-        #exit 1
+if [[ "${EUID}" != "0" ]] && [[ $GHRUNNER != 'yes' ]]; then
+    echo "This script requires root privileges, please rerun using sudo"
+    exit 1
 fi
 
 echo '### Build options'
