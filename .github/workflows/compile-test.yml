@@ -27,6 +27,6 @@ jobs:
       
       # Runs a single command using the runners shell
       - name: build lts (5.10) kernel
-        run: sudo ./build.sh --kernel linux-5.10.y --noconfig --kernelonly
+        run: sudo ./build.sh --ghrunner
   
      
