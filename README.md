@@ -88,5 +88,7 @@
 
 	If you need custom initramfs or different kernel settings, check the code and build neccessary files yourself.
 		
-Thanks to AllesterFox (http://anionix.ddns.net/WDMyCloud/WDMyCloud-Gen2/) and https://github.com/Johns-Q/wdmc-gen2 for their original work on the wdmc-gen2 
-And to ARMBIAN (https://github.com/armbian/build) for their awesome build script which gave lots of inspiration and the zram config :)
+Thanks to: \
+AllesterFox (http://anionix.ddns.net/WDMyCloud/WDMyCloud-Gen2/) \
+Johns Q https://github.com/Johns-Q/wdmc-gen2 for their original work on the wdmc-gen2 \
+ARMBIAN (https://github.com/armbian/build) for their awesome build script which gave lots of inspiration and the zram config :)
