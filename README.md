@@ -11,7 +11,7 @@
 	- built rootfs has zram support and uses it for swap and logging
 	
 * prerequisites for building 
-	- `apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
+	- `apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
 	- gcc for arm eabi 
 		- extract the gcc/glibc archive to /opt
 		- OR

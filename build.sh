@@ -42,13 +42,13 @@ current_user="$(stat --format %U "${current_dir}"/.git)"
 # Adjust makehelp to match path to your gcc:
 ############################################################
 #makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'   #FOR KERNEL VERSION <= 5.6 (via txz)
-makehelp='make CROSS_COMPILE=/opt/gcc-arm-none-eabi/bin/arm-none-eabi- ARCH=arm'                        #FOR KERNEL VERSION >= 5.6 (via txz)
-#makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
+#makehelp='make CROSS_COMPILE=/opt/gcc-arm-none-eabi/bin/arm-none-eabi- ARCH=arm'                        #FOR KERNEL VERSION >= 5.6 (via txz)
+makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
 
 ############################################################
 ### CONFIG VALUES FOR THE CREATED ROOTFS AND KERNEL
 ############################################################
-release='buster'
+release='bullseye'
 arch='armhf'
 qemu_binary='qemu-arm-static'
 components='main,contrib'
@@ -63,7 +63,7 @@ root_pw='1234'
 def_hostname='wdmycloud'
 
 # Default kernel branch
-kernel_branch='linux-5.10.y'
+kernel_branch='linux-5.11.y'
 
 ############################################################
 ### PARAMETERS CHANING THE BEHAVIOUR OF THIS SCRIPT
