@@ -424,7 +424,7 @@ do
 	    BUILD_KERNEL='yes'
 	    BUILD_INITRAMFS='no'
 	    BUILD_ROOT='no'
-            GHRUNNER='yes'
+	    GHRUNNER='yes'
 	    THREADS=2
 	    ALLOW_KERNEL_CONFIG_CHANGES='no'
 	    shift;

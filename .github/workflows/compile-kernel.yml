@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: compile lts kernel 
+name: compile kernel using ghrunner settings
 
 # Controls when the action will run. 
 on:
@@ -28,7 +28,7 @@ jobs:
           clean: 'false'
       
       # Runs a single command using the runners shell
-      - name: build lts (5.10) kernel
+      - name: run build script with ghrunner config
         run: ./build.sh --ghrunner
   
      
