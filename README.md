@@ -2,20 +2,19 @@
 ## WD My Cloud Gen2 based on Marvell ARMADA 375
 
 * mainline kernel support
-	tested with 4.18.x / 5.6.x / 5.10.x
+	tested with 4.18.x / 5.10.x / 5.11.x
 	- device tree source ./dts/armada-375-wdmc-gen2.dts
 	- kernel config for various kernels included check ./config/
 	- some tweaks and pointers in txt files ./docs/
-	- toolchain for building is included as txz ./toolchain/ you might need to install this 
+	- toolchain for building old kernels is included as txz ./toolchain/ . I suggest using the gcc-arm-none-eabi toolchain via apt!
 	- supports caching of kernel and rootfs so not everything needs to be rebuilt everytime
 	- built rootfs has zram support and uses it for swap and logging
 	
 * prerequisites for building 
 	- `apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
-	- gcc for arm eabi 
+	- gcc for arm eabi `apt-get install gcc-arm-none-eabi`
+		- OR (ONLY USE IF ABOVE DOES NOT WORK)
 		- extract the gcc/glibc archive to /opt
-		- OR
-		- `apt-get install gcc-arm-none-eabi`
 		- adjust the path to the gcc in build.sh
 
 * build.sh

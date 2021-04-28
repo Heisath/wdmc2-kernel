@@ -37,12 +37,11 @@ current_user="$(stat --format %U "${current_dir}"/.git)"
 ############################################################
 # Required gcc:
 #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
-#  gcc-arm-none-eabi (downloadable via apt / included in git)         FOR KERNEL VERSION >= 5.6
+#  gcc-arm-none-eabi (downloadable via apt)         FOR KERNEL VERSION >= 5.6
 # check toolchain subfolder for these or install via apt
 # Adjust makehelp to match path to your gcc:
 ############################################################
 #makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'   #FOR KERNEL VERSION <= 5.6 (via txz)
-#makehelp='make CROSS_COMPILE=/opt/gcc-arm-none-eabi/bin/arm-none-eabi- ARCH=arm'                        #FOR KERNEL VERSION >= 5.6 (via txz)
 makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
 
 ############################################################
