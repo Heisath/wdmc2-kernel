@@ -6,7 +6,7 @@ cat << EOF > ${rootfs_dir}/etc/fstab
 /dev/sdb1       /boot           auto    defaults                0       0
 
 proc            /proc           proc    defaults                0       0
-devpts          /dev/pts        devpts  defaults,gid5,mode=620  0       0
+devpts          /dev/pts        devpts  defaults,gid=5,mode=620  0       0
 tmpfs           /dev/shm        tmpfs   mode=0777               0       0
 #tmpfs          /#t#m#p         tmpfs   mode=1777               0       0
 tmpfs           /run            tmpfs   mode=0755,nosuid,nodev  0       0
