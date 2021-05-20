@@ -111,7 +111,7 @@ read_arguments() {
 	        
 	    
             --ghrunner)
-                BUILD_KERNEL='yes'
+                BUILD_KERNEL='on'
                 BUILD_INITRAMFS='off'
                 BUILD_ROOT='off'
                 GHRUNNER='on'
@@ -200,7 +200,7 @@ build_kernel()
         # git clone linux tree
         git clone --branch "$kernel_branch" --depth 1 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git "${kernel_dir}"
     else
-        if [ ${CLEAN_KERNEL_SRC} = 'yes' ]; then
+        if [ ${CLEAN_KERNEL_SRC} = 'on' ]; then
             echo "### Kernel dir does exist. Fetching and cleaning"
             echo "### If you want to skip this step provide --noclean"
 
@@ -238,7 +238,7 @@ build_kernel()
 
     echo "### Starting make"
 
-    if [ ${ALLOW_KERNEL_CONFIG_CHANGES} = 'yes' ]; then
+    if [ ${ALLOW_KERNEL_CONFIG_CHANGES} = 'on' ]; then
         $makehelp menuconfig
     fi
     $makehelp -j${THREADS} zImage
@@ -254,6 +254,7 @@ build_kernel()
 
     echo "### Copying new kernel config to output"
     cp "${kernel_dir}"/.config "${output_dir}"/linux-${kernel_version}.config
+    cp "${kernel_dir}"/.config "${boot_dir}"/linux-${kernel_version}.config
 
     echo "### Adding default ramdisk to output"
     cp prebuilt/uRamdisk "${boot_dir}"
@@ -273,7 +274,7 @@ build_kernel()
     tar -czf "${output_dir}"/modules-${kernel_version}.tar.gz "${kernel_version}"
 
     cd "${output_dir}"
-    tar -czf "${output_dir}"/boot-${kernel_version}.tar.gz boot/uRamdisk boot/uImage-${kernel_version} boot/uImage
+    tar -czf "${output_dir}"/boot-${kernel_version}.tar.gz boot/uRamdisk boot/uImage-${kernel_version} boot/uImage boot/linux-${kernel_version}.config
 
     rm "${boot_dir}"/uImage
 
@@ -438,7 +439,7 @@ EOF
     # Add files for zram (swap and logging)
     . tweaks/zram.sh
 
-    if [ ${BUILD_KERNEL} = 'yes' ]
+    if [ ${BUILD_KERNEL} = 'on' ]
     then
         cp "${boot_dir}"/uRamdisk "${rootfs_dir}"/boot/
         cp "${boot_dir}"/uImage-$kernel_version "${rootfs_dir}"/boot/
@@ -447,12 +448,12 @@ EOF
     fi
 
     cp build_initramfs.sh "${rootfs_dir}"/root/
-    if [ ${BUILD_INITRAMFS} = 'yes' ]
+    if [ ${BUILD_INITRAMFS} = 'on' ]
     then
         chroot "${rootfs_dir}" /bin/bash -c "/root/build_initramfs.sh --update"
     fi
 
-    if [ ${ALLOW_ROOTFS_CHANGES} = 'yes' ]
+    if [ ${ALLOW_ROOTFS_CHANGES} = 'on' ]
     then
         echo "### You can now adjust the rootfs"
         read -r -p "### Press any key to continue and pack it up..." -n1
@@ -515,7 +516,7 @@ THREADS=8
 # start by reading command line arguments
 read_arguments "$@"
 
-if [[ "${EUID}" != "0" ]] && [[ $GHRUNNER != 'yes' ]]; then
+if [[ "${EUID}" != "0" ]] && [[ $GHRUNNER != 'on' ]]; then
     echo "This script requires root privileges, please rerun using sudo"
     exit 1
 fi
@@ -550,15 +551,18 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     [[ $selection == *3* ]] && ALLOW_KERNEL_CONFIG_CHANGES='on'
     [[ $selection == *4* ]] && BUILD_ROOTFS='on'
     [[ $selection == *5* ]] && ALLOW_ROOTFS_CHANGES='on'
+   
 fi
 
 # only allow building initramfs if rootfs build is enabled
-if [[ BUILD_ROOTFS == "on" ]] && [[ -z $BUILD_INITRAMFS ]]; then
+if [[ $BUILD_ROOTFS == "on" ]] && [[ -z $BUILD_INITRAMFS ]]; then
     display_menu "Build initramfs" "Do you want to build the initramfs?" \
-    "1" "yes" \
-    "2" "no" 
+    "y" "yes" \
+    "n" "no" 
+    
+    BUILD_INITRAMFS='off'
 
-    [[ $selection == 1 ]] && BUILD_INITRAMFS='on'
+    [[ $selection == "y" ]] && BUILD_INITRAMFS='on'
 fi
 
 [[ $BUILD_KERNEL == "on" ]] && build_kernel
