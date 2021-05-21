@@ -1,6 +1,3 @@
-#!/bin/bash
-
-cat << EOF > ${rootfs_dir}/etc/network/interfaces
 # interfaces(5) file used by ifup(8) and ifdown(8)
 # Include files from /etc/network/interfaces.d:
 source-directory /etc/network/interfaces.d
@@ -19,4 +16,3 @@ iface eth0 inet dhcp
 #       dns-nameservers 192.168.1.1
 #       dns-search fritz.box
 pre-up /sbin/ethtool -C eth0 rx-frames 32 rx-usecs 1150 
-EOF

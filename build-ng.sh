@@ -17,10 +17,27 @@ grab_version()
 	echo "${ver[0]:-0}${ver[1]:+.${ver[1]}}${ver[2]:+.${ver[2]}}${ver[3]}"
 }
 
+display_yesno() {
+  exec 3>&1
+  dialog --title "$1" \
+    --no-collapse \
+    --yesno "$2" $DIALOG_WIDTH $DIALOG_HEIGHT
+  exit_status=$?
+  exec 3>&-
+  case $exit_status in
+    $DIALOG_CANCEL)
+      selection='off'
+      ;;
+    $DIALOG_OK)
+      selection='on'
+      ;;
+  esac
+}
+
 display_result() {
   dialog --title "$1" \
     --no-collapse \
-    --msgbox "$result" 0 0
+    --msgbox "$2" $DIALOG_WIDTH $DIALOG_HEIGHT
 }
 
 display_select() {
@@ -30,8 +47,31 @@ display_select() {
     --title "$1" \
     --clear \
     --cancel-label "Exit" \
-    --menu "$2" 0 0 0 \
+    --menu "$2" $DIALOG_WIDTH $DIALOG_HEIGHT 0 \
     "${@:3}" \
+    2>&1 1>&3)
+  exit_status=$?
+  exec 3>&-
+  case $exit_status in
+    $DIALOG_CANCEL)
+      echo "Program terminated."
+      exit
+      ;;
+    $DIALOG_ESC)
+      echo "Program aborted." >&2
+      exit 1
+      ;;
+  esac
+}
+
+display_input() {
+  exec 3>&1
+  selection=$(dialog \
+    --backtitle "$BACKTITLE" \
+    --title "$1" \
+    --clear \
+    --cancel-label "Exit" \
+    --inputbox "$2" $DIALOG_WIDTH $DIALOG_HEIGHT "$3" \
     2>&1 1>&3)
   exit_status=$?
   exec 3>&-
@@ -54,7 +94,7 @@ display_checklist() {
     --title "$1" \
     --clear \
     --cancel-label "Exit" \
-    --checklist "$2" 0 0 0 \
+    --checklist "$2" $DIALOG_WIDTH $DIALOG_HEIGHT 0 \
     "${@:3}" \
     2>&1 1>&3)
   exit_status=$?
@@ -97,7 +137,7 @@ read_arguments() {
 
 
             --rootfs)
-                BUILD_ROOT='on'
+                BUILD_ROOTFS='on'
                 shift;
             ;;
             --changes)
@@ -139,6 +179,10 @@ read_arguments() {
                 kernel_branch=${value}
                 shift; shift;
             ;;
+            --zram) 
+                ZRAM_ENABLED='on'
+                shift;
+            ;;
 
             *)    # unknown option
                 POSITIONAL+=("$1") # save it in an array for later
@@ -150,32 +194,6 @@ read_arguments() {
 
 build_kernel()
 {
-    if [ -z "$kernel_branch" ]; then
-        display_select "Kernel Building" "Please select the Linux Kernel branch to build." \
-            "4.18" "Linux kernel 4.18" \
-            "5.6" "Linux kernel 5.6" \
-            "5.8" "Linux kernel 5.8" \
-            "5.10" "Linux kernel 5.10" \
-            "5.11" "Linux kernel 5.11" \
-            "5.12" "Linux kernel 5.12"
-            
-        ############################################################
-        # Required gcc:
-        #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
-        #  gcc-arm-none-eabi (downloadable via apt)         FOR KERNEL VERSION >= 5.6
-        # check toolchain subfolder for these or install via apt
-        # Adjust makehelp to match path to your gcc:
-        ############################################################
-        makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
-        if [[ $selection == "4.18" ]]; then
-            makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'   #FOR KERNEL VERSION <= 5.6 (via txz)
-            display_result "Warning" "You have selected Linux Kernel 4.18, this will be build with older armada370 gcc464 toolchain, make sure you have extracted the txz file available in toolchain folder to /opt/"
-        fi
-
-        kernel_branch="linux-$selection.y"
-    fi
-
-
     # do preparation steps
     echo "### Cloning linux kernel $kernel_branch"
 
@@ -307,24 +325,6 @@ build_kernel()
 
 build_root_fs()
 {
-    if [ -z "$release" ]; then
-        display_select "Rootfs creation" "Please select the Debian release to build." \
-            "buster" "Debian Buster" \
-            "bullseye" "Debian Bullseye" 
-
-        release=$selection
-    fi
-
-    if [ -z "$root_pw" ]; then
-        # Adjust default root pw
-        root_pw='1234'
-    fi
-
-    if [ -z "$def_hostname" ]; then
-        # Adjust hostname here
-        def_hostname='wdmycloud'
-    fi
-
     # setup some more or less static config variables
     arch='armhf'
     qemu_binary='qemu-arm-static'
@@ -361,7 +361,7 @@ build_root_fs()
         fi
     fi
 
-    if [ ${rootfs_cache_valid} = 'no' ]; then
+    if [[ ${rootfs_cache_valid} == 'no' ]]; then
         echo "### Creating new rootfs"
 
         debootstrap --variant=minbase --arch="${arch}" --foreign --components="${components}" --include="${includes}" "${release}" "${rootfs_dir}" "${mirror_addr}"
@@ -399,9 +399,8 @@ EOF
     mount -t devtmpfs chdev "${rootfs_dir}"/dev || mount --bind /dev "${rootfs_dir}"/dev
     mount -t devpts chpts "${rootfs_dir}"/dev/pts
 
-    echo "### Addings sources list and updating"
-    . tweaks/aptsources.sh
-    . tweaks/extrapkgs.sh
+    echo "### Copying files from tweaks folder"
+    cp -a tweaks/* "${rootfs_dir}"
 
     chroot "${rootfs_dir}" /bin/bash -c "apt-get -y update"
     chroot "${rootfs_dir}" /bin/bash -c "apt-get -y full-upgrade"
@@ -424,23 +423,16 @@ EOF
     # permit root login via SSH for the first boot
     sed -i 's/#\?PermitRootLogin .*/PermitRootLogin yes/' "${rootfs_dir}"/etc/ssh/sshd_config
 
-    # create fstab, adjust for your layout here
-    . tweaks/fstab.sh
-
-    # Apply tweaks in sysctl
-    . tweaks/sysctl.sh
-
     # Setup hostname
     echo ${def_hostname} > ${rootfs_dir}/etc/hostname
 
-    # Setup interfaces (eth0)
-    . tweaks/interfaces.sh
+    # Enable zram (swap and logging)
+    if [[ ${ZRAM_ENABLED} == 'on' ]]; then
+        chroot ${rootfs_dir} systemctl enable armbian-zram-config.service
+        chroot ${rootfs_dir} systemctl enable armbian-ramlog.service
+    fi
 
-    # Add files for zram (swap and logging)
-    . tweaks/zram.sh
-
-    if [ ${BUILD_KERNEL} = 'on' ]
-    then
+    if [[ ${BUILD_KERNEL} == 'on' ]]; then
         cp "${boot_dir}"/uRamdisk "${rootfs_dir}"/boot/
         cp "${boot_dir}"/uImage-$kernel_version "${rootfs_dir}"/boot/
         cp "${boot_dir}"/uImage-$kernel_version "${rootfs_dir}"/boot/uImage
@@ -448,14 +440,12 @@ EOF
     fi
 
     cp build_initramfs.sh "${rootfs_dir}"/root/
-    if [ ${BUILD_INITRAMFS} = 'on' ]
-    then
+    if [[ ${BUILD_INITRAMFS} == 'on' ]]; then
         chroot "${rootfs_dir}" /bin/bash -c "/root/build_initramfs.sh --update"
     fi
 
-    if [ ${ALLOW_ROOTFS_CHANGES} = 'on' ]
-    then
-        echo "### You can now adjust the rootfs"
+    if [[ ${ALLOW_ROOTFS_CHANGES} == 'on' ]]; then
+        echo "### You can now adjust the rootfs in output/rootfs/"
         read -r -p "### Press any key to continue and pack it up..." -n1
     fi
 
@@ -497,6 +487,14 @@ DIALOG_CANCEL=1
 DIALOG_ESC=255
 BACKTITLE="WDMC kernel & rootfs build script"
 
+exec 3>&1
+dsize=$(dialog --print-maxsize 2>&1 1>&3)
+exec 3>&-
+dsize=( $(echo "$dsize" | grep -o -E '[0-9]+') )
+DIALOG_WIDTH=$((${dsize[0]} / 2))
+DIALOG_HEIGHT=$((${dsize[1]} / 2))
+
+
 ############################################################
 ### (SUB) DIRECTORIES TO USE
 ############################################################
@@ -512,6 +510,7 @@ current_user="$(stat --format %U "${current_dir}"/.git)"
 ############################################################
 GHRUNNER='off'
 THREADS=8
+EXTRA_PKGS='bash-completion htop'
 
 # start by reading command line arguments
 read_arguments "$@"
@@ -530,6 +529,8 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
 
     BUILD_ROOTFS='on'
     ALLOW_ROOTFS_CHANGES='off'
+    ASK_EXTRA_PKGS='off'
+    ZRAM_ENABLED='on'
 
     # Show user checklist to select
     display_checklist "Build setup" "Select components and options for build:" \
@@ -537,7 +538,9 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
         "2" "Clean Kernel sources" "$CLEAN_KERNEL_SRC" \
         "3" "Allow Kernel config changes" "$ALLOW_KERNEL_CONFIG_CHANGES" \
         "4" "Debian Rootfs" "$BUILD_ROOTFS" \
-        "5" "Allow Rootfs changes" "$ALLOW_ROOTFS_CHANGES" 
+        "5" "Allow Rootfs changes" "$ALLOW_ROOTFS_CHANGES" \
+        "6" "Ask for extra apt pkgs" "$ASK_EXTRA_PKGS" \
+        "7" "Enable ZRAM on rootfs" "$ZRAM_ENABLED" 
         
     # Accept user choices
     BUILD_KERNEL='off'
@@ -545,14 +548,51 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     ALLOW_KERNEL_CONFIG_CHANGES='off'
     BUILD_ROOTFS='off'
     ALLOW_ROOTFS_CHANGES='off'
+    ASK_EXTRA_PKGS='off'
+    ZRAM_ENABLED='off'
 
     [[ $selection == *1* ]] && BUILD_KERNEL='on'
     [[ $selection == *2* ]] && CLEAN_KERNEL_SRC='on'
     [[ $selection == *3* ]] && ALLOW_KERNEL_CONFIG_CHANGES='on'
     [[ $selection == *4* ]] && BUILD_ROOTFS='on'
     [[ $selection == *5* ]] && ALLOW_ROOTFS_CHANGES='on'
-   
+    [[ $selection == *6* ]] && ASK_EXTRA_PKGS='on'
+    [[ $selection == *7* ]] && ZRAM_ENABLED='on'
+else # at least kernel or rootfs has been selected via command line, check other options and set defaults
+    [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='on'
+    [[ -z $ALLOW_KERNEL_CONFIG_CHANGES  ]] && ALLOW_KERNEL_CONFIG_CHANGES='off'
+        
+    [[ -z $ALLOW_ROOTFS_CHANGES  ]] && ALLOW_ROOTFS_CHANGES='off'    
+    [[ -z $ASK_EXTRA_PKGS  ]] && ASK_EXTRA_PKGS='off'
+    [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='on' 
 fi
+
+if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
+    display_select "Kernel Building" "Please select the Linux Kernel branch to build." \
+        "4.18" "Linux kernel 4.18" \
+        "5.6" "Linux kernel 5.6" \
+        "5.8" "Linux kernel 5.8" \
+        "5.10" "Linux kernel 5.10" \
+        "5.11" "Linux kernel 5.11" \
+        "5.12" "Linux kernel 5.12"
+        
+    ############################################################
+    # Required gcc:
+    #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
+    #  gcc-arm-none-eabi (downloadable via apt)         FOR KERNEL VERSION >= 5.6
+    # check toolchain subfolder for these or install via apt
+    # Adjust makehelp to match path to your gcc:
+    ############################################################
+    makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
+    if [[ $selection == "4.18" ]]; then
+        makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'   #FOR KERNEL VERSION <= 5.6 (via txz)
+        display_result "Warning" "You have selected Linux Kernel 4.18, this will be build with older armada370 gcc464 toolchain, make sure you have extracted the txz file available in toolchain folder to /opt/"
+    fi
+
+    kernel_branch="linux-$selection.y"
+fi
+BACKTITLE+=" | "${kernel_branch}
+
 
 # only allow building initramfs if rootfs build is enabled
 if [[ $BUILD_ROOTFS == "on" ]] && [[ -z $BUILD_INITRAMFS ]]; then
@@ -564,6 +604,34 @@ if [[ $BUILD_ROOTFS == "on" ]] && [[ -z $BUILD_INITRAMFS ]]; then
 
     [[ $selection == "y" ]] && BUILD_INITRAMFS='on'
 fi
+
+if [[ $BUILD_ROOTFS == "on" ]]; then
+    if [ -z "$release" ]; then
+        display_select "Rootfs creation" "Please select the Debian release to build." \
+            "buster" "Debian Buster" \
+            "bullseye" "Debian Bullseye" 
+
+        release=$selection
+    fi
+
+    if [[ "$ASK_EXTRA_PKGS" == 'on' ]]; then
+        display_input "Rootfs creation" "Type in any extra apt packages you want install. (Space seperated)" "$EXTRA_PKGS"
+        EXTRA_PKGS="$selection"
+    fi
+
+    if [ -z "$root_pw" ]; then
+        # Adjust default root pw
+        display_input "Rootfs creation" "Type in the root password (Warning, root ssh will be enabled)" "1234"
+        root_pw="$selection"
+    fi
+
+    if [ -z "$def_hostname" ]; then
+        # Adjust hostname here
+        display_input "Rootfs creation" "Type in the hostname for the WDMC" "wdmycloud"
+        def_hostname="$selection"
+    fi
+fi
+BACKTITLE+=" | "${release}
 
 [[ $BUILD_KERNEL == "on" ]] && build_kernel
 [[ $BUILD_ROOTFS == "on" ]] && build_root_fs
