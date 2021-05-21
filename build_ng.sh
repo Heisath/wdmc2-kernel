@@ -520,8 +520,12 @@ if [[ "${EUID}" != "0" ]] && [[ $GHRUNNER != 'on' ]]; then
     exit 1
 fi
 
+echo "### Will try to use apt to install prerequisites."
+apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static gcc-arm-none-eabi
+
 # if command line has selected neither kernel nor rootfs we can assume, no selection was done and ask user
 if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
+
     # set sensible defaults
     BUILD_KERNEL='on'
     CLEAN_KERNEL_SRC='on'
@@ -596,7 +600,7 @@ BACKTITLE+=" | "${kernel_branch}
 
 # only allow building initramfs if rootfs build is enabled
 if [[ $BUILD_ROOTFS == "on" ]] && [[ -z $BUILD_INITRAMFS ]]; then
-    display_menu "Build initramfs" "Do you want to build the initramfs?" \
+    display_select "Build initramfs" "Do you want to build the initramfs?" \
     "y" "yes" \
     "n" "no" 
     
