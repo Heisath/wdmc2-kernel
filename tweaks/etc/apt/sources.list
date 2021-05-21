@@ -1,13 +1,13 @@
 ###
-deb http://httpredir.debian.org/debian ${release} main contrib non-free
-deb-src http://httpredir.debian.org/debian ${release} main contrib non-free
+deb http://httpredir.debian.org/debian _release_ main contrib non-free
+deb-src http://httpredir.debian.org/debian _release_ main contrib non-free
 
-deb http://httpredir.debian.org/debian-security/ ${release}/updates main contrib non-free
-deb-src http://httpredir.debian.org/debian-security/ ${release}/updates main contrib non-free
+deb http://httpredir.debian.org/debian-security/ _release_/updates main contrib non-free
+deb-src http://httpredir.debian.org/debian-security/ _release_/updates main contrib non-free
 
-deb http://httpredir.debian.org/debian ${release}-updates main contrib non-free
-deb-src http://httpredir.debian.org/debian ${release}-updates main contrib non-free
+deb http://httpredir.debian.org/debian _release_-updates main contrib non-free
+deb-src http://httpredir.debian.org/debian _release_-updates main contrib non-free
 
-deb http://httpredir.debian.org/debian ${release}-backports main contrib non-free
-deb-src http://httpredir.debian.org/debian ${release}-backports main contrib non-free
+deb http://httpredir.debian.org/debian _release_-backports main contrib non-free
+deb-src http://httpredir.debian.org/debian _release_-backports main contrib non-free
 ###

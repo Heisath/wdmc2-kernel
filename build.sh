@@ -408,6 +408,8 @@ EOF
 
     echo "### Copying files from tweaks folder"
     cp -a tweaks/* "${rootfs_dir}"
+    
+    sed -i -e "s/_release_/$release/g" "${rootfs_dir}/etc/apt/sources.list"
 
     chroot "${rootfs_dir}" /bin/bash -c "apt-get -y update"
     chroot "${rootfs_dir}" /bin/bash -c "apt-get -y full-upgrade"
