@@ -152,11 +152,18 @@ read_arguments() {
 	    
             --ghrunner)
                 BUILD_KERNEL='on'
+                CLEAN_KERNEL_SRC='on'
+                ALLOW_KERNEL_CONFIG_CHANGES='off'
+
                 BUILD_INITRAMFS='off'
                 BUILD_ROOT='off'
+                
+                kernel_branch='linux-5.10.y'
+                
                 GHRUNNER='on'
                 THREADS=2
-                ALLOW_KERNEL_CONFIG_CHANGES='off'
+
+
                 shift;
             ;;
             
@@ -511,6 +518,7 @@ current_user="$(stat --format %U "${current_dir}"/.git)"
 GHRUNNER='off'
 THREADS=8
 EXTRA_PKGS='bash-completion htop'
+makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
 
 # start by reading command line arguments
 read_arguments "$@"
@@ -520,8 +528,10 @@ if [[ "${EUID}" != "0" ]] && [[ $GHRUNNER != 'on' ]]; then
     exit 1
 fi
 
-echo "### Will try to use apt to install prerequisites."
-apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static gcc-arm-none-eabi
+if [[ $GHRUNNER != 'on' ]]; then
+    echo "### Will try to use apt to install prerequisites."
+    apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static gcc-arm-none-eabi
+fi
 
 # if command line has selected neither kernel nor rootfs we can assume, no selection was done and ask user
 if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
@@ -587,7 +597,6 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
     # check toolchain subfolder for these or install via apt
     # Adjust makehelp to match path to your gcc:
     ############################################################
-    makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                                         #FOR KERNEL VERSION >= 5.6 (via apt)
     if [[ $selection == "4.18" ]]; then
         makehelp='make CROSS_COMPILE=/opt/arm-marvell-linux-gnueabi/bin/arm-marvell-linux-gnueabi- ARCH=arm'   #FOR KERNEL VERSION <= 5.6 (via txz)
         display_result "Warning" "You have selected Linux Kernel 4.18, this will be build with older armada370 gcc464 toolchain, make sure you have extracted the txz file available in toolchain folder to /opt/"
