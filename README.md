@@ -1,6 +1,8 @@
 # build tools for wdmc-gen2
 ## WD My Cloud Gen2 based on Marvell ARMADA 375
 
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=HXWRU82YBV7HC&source=url)
+
 * mainline kernel support tested with 4.18.x / 5.10.x / 5.11.x
 	- device tree source ./dts/armada-375-wdmc-gen2.dts
 	- kernel config for various kernels included check ./config/
