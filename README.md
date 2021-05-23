@@ -1,8 +1,7 @@
 # build tools for wdmc-gen2
 ## WD My Cloud Gen2 based on Marvell ARMADA 375
 
-* mainline kernel support
-	tested with 4.18.x / 5.10.x / 5.11.x
+* mainline kernel support tested with 4.18.x / 5.10.x / 5.11.x
 	- device tree source ./dts/armada-375-wdmc-gen2.dts
 	- kernel config for various kernels included check ./config/
 	- some tweaks and pointers in txt files ./docs/
@@ -26,21 +25,16 @@
    		    - `--kernelbranch {branch}` to select kernel branch from kernel.org
 	   		- `--clean` to reset and fetch git before compiling kernel (to remove possible changes)
     		- `--config` to use menuconfig to allow user to customize kernel
-
 		- `--rootfs` to select rootfs creation:
     		- `--release {debianrelease}` to select the debian release to use as rootfs
 			- `--changes` to pause and wait for changes in the rootfs before unmounting and packaging (this allows you to do customization)
-        	- `--initramfs` to create new initramfs in rootfs
-        	
+        	- `--initramfs` to create new initramfs in rootfs        	
     		- `--root-pw {rootpw}` to select root pw for new rootfs
 	    	- `--hostname {host}` to select hostname for new rootfs
             - `--zram` to enable logging and swap via ZRAM
             - `--boot {usb/hdd}` to select fstab to use (either for booting from usb or hdd)
-
-		- if a parameters is not given, the default value is used or the user is prompted
-		
+	- if a parameters is not given, the default value is used or the user is prompted
 	- if building a rootfs build.sh will include the tweaks from ./tweaks/  You can adjust fstab and various other stuff there
-	
 	- Depending on the selected actions the script will:
 		- for the kernel: 
 			- git clone and checkout the kernel 
