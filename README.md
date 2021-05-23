@@ -10,7 +10,7 @@
 	- supports caching of kernel and rootfs so not everything needs to be rebuilt everytime
 	- built rootfs has zram support and uses it for swap and logging
 	
-* prerequisites for building 
+* prerequisites for building will be installed by build.sh automatically using:
 	- `apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
 	- gcc for arm eabi `apt-get install gcc-arm-none-eabi`
 		- OR (ONLY USE IF ABOVE DOES NOT WORK)
@@ -20,19 +20,25 @@
 * build.sh
 	- provides a way of building a kernel, rootfs and uRamdisk
 	- run build.sh as root (or with sudo)
-	- possible parameters are:
-		- `--release {debianrelease}` to select the debian release to use as rootfs
-		- `--root-pw {rootpw}` to select root pw for new rootfs
-		- `--hostname {host}` to select hostname for new rootfs
-		- `--kernel {version}` to select kernel version to build
-		- `--kernelonly` to only build the kernel (without uRamdisk and rootfs)
-		- `--rootonly` to only build the rootfs (without kernel and uRamdisk)
-		- `--nokernel` to only build the rootfs + uRamdisk
-		- `--noinitramfs` to build kernel and rootfs without uRamdisk
-		- `--changes` to pause and wait for changes in the rootfs before unmounting and packaging (this allows you to do customization)
-		- `--noclean` to compile kernel without resetting and fetching git
-		- `--noconfig` to skip menuconfig part of kernel
-		- if a parameters is not given, the default value is used. Check in build.sh for default and other usage
+	- script will use dialog to ask for features and configuration
+	- possible parameters to skip dialogs are:
+		- `--kernel` to select kernel building:
+   		    - `--kernelbranch {branch}` to select kernel branch from kernel.org
+	   		- `--clean` to reset and fetch git before compiling kernel (to remove possible changes)
+    		- `--config` to use menuconfig to allow user to customize kernel
+
+		- `--rootfs` to select rootfs creation:
+    		- `--release {debianrelease}` to select the debian release to use as rootfs
+			- `--changes` to pause and wait for changes in the rootfs before unmounting and packaging (this allows you to do customization)
+        	- `--initramfs` to create new initramfs in rootfs
+        	
+    		- `--root-pw {rootpw}` to select root pw for new rootfs
+	    	- `--hostname {host}` to select hostname for new rootfs
+            - `--zram` to enable logging and swap via ZRAM
+            - `--boot {usb/hdd}` to select fstab to use (either for booting from usb or hdd)
+
+		- if a parameters is not given, the default value is used or the user is prompted
+		
 	- if building a rootfs build.sh will include the tweaks from ./tweaks/  You can adjust fstab and various other stuff there
 	
 	- Depending on the selected actions the script will:
@@ -81,7 +87,6 @@
 	- copy the folder from release/boot into sda3. Rename/link the uImage-5.6 file to uImage. Make sure both the uImage and uRamdisk are executable
 	- extract the buster-rootfs.tar.gz on the sda3 partition
 	- copy the release/lib/ folder onto the sda3 partition (to add the 5.6 modules)
-	- adjust sda3/etc/fstab to fit your needs (you don't need seperate root / boot folders, so adjust this)
 	- boot wdmc, root password is '1234', configure/add packages as needed
 	- I suggest starting with USB stick, because this requires no changes on the internal harddisk.
 
