@@ -191,6 +191,11 @@ read_arguments() {
                 shift;
             ;;
 
+            --boot)
+                BOOT_DEVICE=${value}
+                shift; shift;
+            ;;
+            
             *)    # unknown option
                 POSITIONAL+=("$1") # save it in an array for later
                 shift # past argument
@@ -409,6 +414,11 @@ EOF
     echo "### Copying files from tweaks folder"
     cp -a tweaks/* "${rootfs_dir}"
     
+    echo "### Adjusting fstab"
+    [[ "$BOOT_DEVICE" == 'usb' ]] && cp "${rootfs_dir}"/etc/fstab.usb "${rootfs_dir}"/etc/fstab
+    [[ "$BOOT_DEVICE" == 'hdd' ]] && cp "${rootfs_dir}"/etc/fstab.hdd "${rootfs_dir}"/etc/fstab    
+    
+    echo "### Running apt in chroot"
     sed -i -e "s/_release_/$release/g" "${rootfs_dir}/etc/apt/sources.list"
 
     chroot "${rootfs_dir}" /bin/bash -c "apt-get -y update"
@@ -634,6 +644,20 @@ if [[ $BUILD_ROOTFS == "on" ]]; then
         EXTRA_PKGS="$selection"
     fi
 
+    if [[ -z "$BOOT_DEVICE" ]]; then
+        display_select "Rootfs creation" "Please select which fstab to setup?" \
+            "usb" "For usage with USB stick (boot on sdb1, root on sdb2)" \
+            "hdd" "For usage with internal HDD (boot&root on sda3, data on sda2)"
+        BOOT_DEVICE="$selection"
+    fi
+    
+    if [[ "$BOOT_DEVICE" != "hdd" ]] && [[ "$BOOT_DEVICE" != "usb" ]]; then
+        display_select "Rootfs creation" "Invalid boot device selected! Please choose:" \
+            "usb" "For usage with USB stick (boot on sdb1, root on sdb2)" \
+            "hdd" "For usage with internal HDD (boot&root on sda3, data on sda2)"
+        BOOT_DEVICE="$selection"
+    fi
+    
     if [ -z "$root_pw" ]; then
         # Adjust default root pw
         display_input "Rootfs creation" "Type in the root password (Warning, root ssh will be enabled)" "1234"
