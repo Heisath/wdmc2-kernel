@@ -542,7 +542,7 @@ fi
 
 if [[ $GHRUNNER != 'on' ]]; then
     echo "### Will try to use apt to install prerequisites."
-    apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static gcc-arm-none-eabi
+    apt-get install build-essential bc libncurses5 dialog u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static gcc-arm-none-eabi
 fi
 
 # if command line has selected neither kernel nor rootfs we can assume, no selection was done and ask user
@@ -674,4 +674,3 @@ BACKTITLE+=" | "${release}
 
 [[ $BUILD_KERNEL == "on" ]] && build_kernel
 [[ $BUILD_ROOTFS == "on" ]] && build_root_fs
-

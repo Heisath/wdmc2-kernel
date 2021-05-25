@@ -12,7 +12,7 @@
 	- built rootfs has zram support and uses it for swap and logging
 	
 * prerequisites for building will be installed by build.sh automatically using:
-	- `apt-get install build-essential bc libncurses5 u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
+	- `apt-get install build-essential bc libncurses5 dialog u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
 	- gcc for arm eabi `apt-get install gcc-arm-none-eabi`
 		- OR (ONLY USE IF ABOVE DOES NOT WORK)
 		- extract the gcc/glibc archive to /opt
