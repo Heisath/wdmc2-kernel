@@ -506,14 +506,6 @@ DIALOG_CANCEL=1
 DIALOG_ESC=255
 BACKTITLE="WDMC kernel & rootfs build script"
 
-exec 3>&1
-dsize=$(dialog --print-maxsize 2>&1 1>&3)
-exec 3>&-
-dsize=( $(echo "$dsize" | grep -o -E '[0-9]+') )
-DIALOG_WIDTH=$((${dsize[0]} / 2))
-DIALOG_HEIGHT=$((${dsize[1]} / 2))
-
-
 ############################################################
 ### (SUB) DIRECTORIES TO USE
 ############################################################
@@ -544,6 +536,15 @@ if [[ $GHRUNNER != 'on' ]]; then
     echo "### Will try to use apt to install prerequisites."
     apt-get install build-essential bc libncurses5 dialog u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static gcc-arm-none-eabi
 fi
+
+# calculate dialog sizes
+exec 3>&1
+dsize=$(dialog --print-maxsize 2>&1 1>&3)
+exec 3>&-
+dsize=( $(echo "$dsize" | grep -o -E '[0-9]+') )
+DIALOG_WIDTH=$((${dsize[0]} / 2))
+DIALOG_HEIGHT=$((${dsize[1]} / 2))
+
 
 # if command line has selected neither kernel nor rootfs we can assume, no selection was done and ask user
 if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
