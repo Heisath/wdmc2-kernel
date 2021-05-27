@@ -21,7 +21,7 @@ display_yesno() {
   exec 3>&1
   dialog --title "$1" \
     --no-collapse \
-    --yesno "$2" $DIALOG_WIDTH $DIALOG_HEIGHT
+    --yesno "$2" $DIALOG_HEIGHT $DIALOG_WIDTH
   exit_status=$?
   exec 3>&-
   case $exit_status in
@@ -37,7 +37,7 @@ display_yesno() {
 display_result() {
   dialog --title "$1" \
     --no-collapse \
-    --msgbox "$2" $DIALOG_WIDTH $DIALOG_HEIGHT
+    --msgbox "$2" $DIALOG_HEIGHT $DIALOG_WIDTH
 }
 
 display_select() {
@@ -47,7 +47,7 @@ display_select() {
     --title "$1" \
     --clear \
     --cancel-label "Exit" \
-    --menu "$2" $DIALOG_WIDTH $DIALOG_HEIGHT 0 \
+    --menu "$2" $DIALOG_HEIGHT $DIALOG_WIDTH 0 \
     "${@:3}" \
     2>&1 1>&3)
   exit_status=$?
@@ -71,7 +71,7 @@ display_input() {
     --title "$1" \
     --clear \
     --cancel-label "Exit" \
-    --inputbox "$2" $DIALOG_WIDTH $DIALOG_HEIGHT "$3" \
+    --inputbox "$2" $DIALOG_HEIGHT $DIALOG_WIDTH "$3" \
     2>&1 1>&3)
   exit_status=$?
   exec 3>&-
@@ -94,7 +94,7 @@ display_checklist() {
     --title "$1" \
     --clear \
     --cancel-label "Exit" \
-    --checklist "$2" $DIALOG_WIDTH $DIALOG_HEIGHT 0 \
+    --checklist "$2" $DIALOG_HEIGHT $DIALOG_WIDTH 0 \
     "${@:3}" \
     2>&1 1>&3)
   exit_status=$?
@@ -542,8 +542,8 @@ exec 3>&1
 dsize=$(dialog --print-maxsize 2>&1 1>&3)
 exec 3>&-
 dsize=( $(echo "$dsize" | grep -o -E '[0-9]+') )
-DIALOG_WIDTH=$((${dsize[0]} / 2))
-DIALOG_HEIGHT=$((${dsize[1]} / 2))
+DIALOG_HEIGHT=$((${dsize[0]} - 12))
+DIALOG_WIDTH=$((${dsize[1]} - 8))
 
 
 # if command line has selected neither kernel nor rootfs we can assume, no selection was done and ask user
