@@ -262,8 +262,13 @@ build_kernel()
 
     kernel_version=$(grab_version "${kernel_dir}");
     
-    # cleanup old modules for this kernel
-    rm -r "${output_dir}"/lib/modules/"$kernel_version"
+    # cleanup old modules for this kernel, this helps when rebuilding kernel with less modules
+    if [ -d "${output_dir}"/lib/modules/"${kernel_version}" ]; then
+    	rm -r "${output_dir}"/lib/modules/"$kernel_version"
+    elif [ -d "${output_dir}"/lib/modules/"${kernel_version}"+ ]; then
+    	rm -r "${output_dir}"/lib/modules/"$kernel_version"+
+    fi
+    
     
     # cd into linux source
     cd "${kernel_dir}"
@@ -302,7 +307,13 @@ build_kernel()
 
     # tar and compress modules for easier transport
     cd "${output_dir}"/lib/modules/
-    tar -czf "${output_dir}"/modules-${kernel_version}.tar.gz "${kernel_version}"
+    if [ -d "${kernel_version}" ]; then
+    	tar -czf "${output_dir}"/modules-${kernel_version}.tar.gz "${kernel_version}"
+    elif [ -d "${kernel_version}"+ ]; then
+    	tar -czf "${output_dir}"/modules-${kernel_version}+.tar.gz "${kernel_version}"+
+    else
+    	echo "### Failed to tar up modules folder! It might be missing from the output."
+    fi
 
     cd "${output_dir}"
     tar -czf "${output_dir}"/boot-${kernel_version}.tar.gz boot/uRamdisk boot/uImage-${kernel_version} boot/uImage boot/linux-${kernel_version}.config
