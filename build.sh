@@ -324,7 +324,7 @@ build_kernel()
     
     # abort point for github runner to keep it from messing with permissions
     if [[ $GHRUNNER == 'on' ]]; then
-        return
+        exit 0
     fi
 
     # fix permissions on folders for usability
