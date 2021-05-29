@@ -221,7 +221,6 @@ build_kernel()
     mkdir -p "${output_dir}"
     mkdir -p "${boot_dir}"
 
-
     if [ ! -d ${kernel_dir} ]; then
         echo "### Kernel dir does not exist, cloning kernel"
 
@@ -262,7 +261,10 @@ build_kernel()
     cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/
 
     kernel_version=$(grab_version "${kernel_dir}");
-
+    
+    # cleanup old modules for this kernel
+    rm -r "${output_dir}"/lib/modules/"$kernel_version"
+    
     # cd into linux source
     cd "${kernel_dir}"
 
@@ -283,7 +285,6 @@ build_kernel()
     cd "${current_dir}"
 
     echo "### Copying new kernel config to output"
-    cp "${kernel_dir}"/.config "${output_dir}"/linux-${kernel_version}.config
     cp "${kernel_dir}"/.config "${boot_dir}"/linux-${kernel_version}.config
 
     echo "### Adding default ramdisk to output"
