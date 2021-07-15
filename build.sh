@@ -249,6 +249,12 @@ build_kernel()
 
     fi
 
+    kernel_version=$(grab_version "${kernel_dir}");
+    
+    if [[ $kernel_version == 0 ]]; then
+        rm -rf "${kernel_dir}"
+        exit_with_error "### Error cloning kernel"
+    fi
 
     # copy config and dts
     echo "### Moving kernel config in place"
@@ -260,7 +266,7 @@ build_kernel()
     cp "${kernel_config}" "${kernel_dir}"/.config
     cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/
 
-    kernel_version=$(grab_version "${kernel_dir}");
+    
     
     # cleanup old modules for this kernel, this helps when rebuilding kernel with less modules
     if [ -d "${output_dir}"/lib/modules/"${kernel_version}" ]; then
@@ -335,8 +341,13 @@ build_kernel()
     chown -R "root:sudo" "${boot_dir}"
     chown "root:sudo" "${output_dir}"/lib
 
-    chown "${current_user}:sudo" "${output_dir}"/linux-${kernel_version}.config
-    chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}.tar.gz
+    if [ -f "${output_dir}"/modules-${kernel_version}.tar.gz ]; then
+    	chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}.tar.gz
+	fi
+    if [ -f "${output_dir}"/modules-${kernel_version}+.tar.gz ]; then
+   	    chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}+.tar.gz
+    fi
+    
     chown "${current_user}:sudo" "${output_dir}"/boot-${kernel_version}.tar.gz
 
     chmod "g+rw" "${cache_dir}"
