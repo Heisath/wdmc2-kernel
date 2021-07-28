@@ -148,6 +148,10 @@ read_arguments() {
 	            BUILD_INITRAMFS='on'
 	            shift;
             ;;
+            --cmdline)
+                ALLOW_CMDLINE_CHANGES='on'
+                shift;
+            ;;
 	        
 	    
             --ghrunner)
@@ -488,7 +492,13 @@ EOF
 
     if [[ ${ALLOW_ROOTFS_CHANGES} == 'on' ]]; then
         echo "### You can now adjust the rootfs in output/rootfs/"
-        read -r -p "### Press any key to continue and pack it up..." -n1
+        read -r -p "### Press any key to continue..." -n1
+    fi
+    
+    if [[ ${ALLOW_CMDLINE_CHANGES} == 'on' ]]; then
+        echo "### Will now enter a root bash in the new rootfs"
+        echo "### Once you are done making changes, 'exit' to continue..."
+        chroot "${rootfs_dir}" /bin/bash 
     fi
 
     echo "### Unmounting"
@@ -579,6 +589,7 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
 
     BUILD_ROOTFS='on'
     ALLOW_ROOTFS_CHANGES='off'
+    ALLOW_CMDLINE_CHANGES='off'
     ASK_EXTRA_PKGS='off'
     ZRAM_ENABLED='on'
 
@@ -588,9 +599,10 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
         "2" "Clean Kernel sources" "$CLEAN_KERNEL_SRC" \
         "3" "Allow Kernel config changes" "$ALLOW_KERNEL_CONFIG_CHANGES" \
         "4" "Debian Rootfs" "$BUILD_ROOTFS" \
-        "5" "Allow Rootfs changes" "$ALLOW_ROOTFS_CHANGES" \
-        "6" "Ask for extra apt pkgs" "$ASK_EXTRA_PKGS" \
-        "7" "Enable ZRAM on rootfs" "$ZRAM_ENABLED" 
+        "5" "Pause to allow rootfs changes via filesystem" "$ALLOW_ROOTFS_CHANGES" \
+        "6" "Enter bash in rootfs for manual changes" "$ALLOW_CMDLINE_CHANGES" \
+        "7" "Ask for extra apt pkgs" "$ASK_EXTRA_PKGS" \
+        "8" "Enable ZRAM on rootfs" "$ZRAM_ENABLED" 
         
     # Accept user choices
     BUILD_KERNEL='off'
@@ -598,6 +610,7 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     ALLOW_KERNEL_CONFIG_CHANGES='off'
     BUILD_ROOTFS='off'
     ALLOW_ROOTFS_CHANGES='off'
+    ALLOW_CMDLINE_CHANGES='off'
     ASK_EXTRA_PKGS='off'
     ZRAM_ENABLED='off'
 
@@ -606,8 +619,10 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     [[ $selection == *3* ]] && ALLOW_KERNEL_CONFIG_CHANGES='on'
     [[ $selection == *4* ]] && BUILD_ROOTFS='on'
     [[ $selection == *5* ]] && ALLOW_ROOTFS_CHANGES='on'
-    [[ $selection == *6* ]] && ASK_EXTRA_PKGS='on'
-    [[ $selection == *7* ]] && ZRAM_ENABLED='on'
+    [[ $selection == *6* ]] && ALLOW_CMDLINE_CHANGES='on'
+    [[ $selection == *7* ]] && ASK_EXTRA_PKGS='on'
+    [[ $selection == *8* ]] && ZRAM_ENABLED='on'
+    
 else # at least kernel or rootfs has been selected via command line, check other options and set defaults
     [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='on'
     [[ -z $ALLOW_KERNEL_CONFIG_CHANGES  ]] && ALLOW_KERNEL_CONFIG_CHANGES='off'
@@ -617,6 +632,8 @@ else # at least kernel or rootfs has been selected via command line, check other
     [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='on' 
 fi
 
+
+# inquire about further kernel configuration
 if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
     display_select "Kernel Building" "Please select the Linux Kernel branch to build." \
         "4.18" "Linux kernel 4.18" \
@@ -624,7 +641,8 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
         "5.8" "Linux kernel 5.8" \
         "5.10" "Linux kernel 5.10" \
         "5.11" "Linux kernel 5.11" \
-        "5.12" "Linux kernel 5.12"
+        "5.12" "Linux kernel 5.12" \
+        "5.13" "Linux kernel 5.13"
         
     ############################################################
     # Required gcc:
@@ -654,6 +672,7 @@ if [[ $BUILD_ROOTFS == "on" ]] && [[ -z $BUILD_INITRAMFS ]]; then
     [[ $selection == "y" ]] && BUILD_INITRAMFS='on'
 fi
 
+# get details for building the rootfs
 if [[ $BUILD_ROOTFS == "on" ]]; then
     if [ -z "$release" ]; then
         display_select "Rootfs creation" "Please select the Debian release to build." \

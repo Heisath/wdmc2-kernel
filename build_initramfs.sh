@@ -12,8 +12,8 @@ CURRENT_DIR=$PWD
 INITRAMFS=${CURRENT_DIR}/initramfs
 INITRAMFS_ROOT=${INITRAMFS}/root
 
-if [ "$1" = '--update' ] 
-then 
+if [ "$1" = '--update' ]
+then
     UPDATE_BOOT='yes'
 else
     UPDATE_BOOT='no'
@@ -33,6 +33,9 @@ mkdir -p ${INITRAMFS_ROOT}/{bin,dev,etc,lib,lib64,newroot,proc,sbin,sys,usr} ${I
 cp -a /dev/{null,console,tty} ${INITRAMFS_ROOT}/dev
 cp -a /bin/busybox ${INITRAMFS_ROOT}/bin/busybox
 cp $(ldd "/bin/busybox" | egrep -o '/.* ') ${INITRAMFS_ROOT}/lib/
+
+cp -a /sbin/e2fsck ${INITRAMFS_ROOT}/sbin/e2fsck
+cp $(ldd "/sbin/e2fsck" | egrep -o '/.* ') ${INITRAMFS_ROOT}/lib/
 
 cat << EOF > ${INITRAMFS_ROOT}/init
 #!/bin/busybox sh
@@ -138,13 +141,24 @@ mkimage -A arm -O linux -T ramdisk -a 0x00e00000 -e 0x0 -n "Custom initramfs" -d
 
 if [ "$UPDATE_BOOT" = 'yes' ] 
 then 
-    echo '### Updating /boot'
-    if [ -e '/boot/uRamdisk' ] 
-    then
-        mv /boot/uRamdisk /boot/uRamdisk.old
-    fi
+    if [ -e '/boot/boot/' ]; then
+        echo '### Updating /boot/boot'    
     
-    mv ${INITRAMFS}/uRamdisk /boot/uRamdisk    
+        if [ -e '/boot/boot/uRamdisk' ]; then
+            mv /boot/boot/uRamdisk /boot/boot/uRamdisk.old
+        fi
+    
+        mv ${INITRAMFS}/uRamdisk /boot/boot/uRamdisk        
+    elif [ -e '/boot/' ]; then
+        echo '### Updating /boot'
+    
+        if [ -e '/boot/uRamdisk' ]; then
+            mv /boot/uRamdisk /boot/uRamdisk.old
+        fi
+    
+        mv ${INITRAMFS}/uRamdisk /boot/uRamdisk    
+    fi
+
     rm -rf ${INITRAMFS}
 else
     echo '### Cleanup'
