@@ -152,8 +152,8 @@ read_arguments() {
                 ALLOW_CMDLINE_CHANGES='on'
                 shift;
             ;;
-	        
-	    
+
+
             --ghrunner)
                 BUILD_KERNEL='on'
                 CLEAN_KERNEL_SRC='on'
@@ -161,19 +161,19 @@ read_arguments() {
 
                 BUILD_INITRAMFS='off'
                 BUILD_ROOT='off'
-                
+
                 kernel_branch='linux-5.10.y'
-                
+
                 GHRUNNER='on'
                 THREADS=2
 
 
                 shift;
             ;;
-            
-            
+
+
             #  config selection
-        
+
             --release)
                 release=${value}
                 shift; shift
@@ -190,7 +190,7 @@ read_arguments() {
                 kernel_branch=${value}
                 shift; shift;
             ;;
-            --zram) 
+            --zram)
                 ZRAM_ENABLED='on'
                 shift;
             ;;
@@ -199,7 +199,7 @@ read_arguments() {
                 BOOT_DEVICE=${value}
                 shift; shift;
             ;;
-            
+
             *)    # unknown option
                 POSITIONAL+=("$1") # save it in an array for later
                 shift # past argument
@@ -254,7 +254,7 @@ build_kernel()
     fi
 
     kernel_version=$(grab_version "${kernel_dir}");
-    
+
     if [[ $kernel_version == 0 ]]; then
         rm -rf "${kernel_dir}"
         exit_with_error "### Error cloning kernel"
@@ -270,16 +270,16 @@ build_kernel()
     cp "${kernel_config}" "${kernel_dir}"/.config
     cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/
 
-    
-    
+
+
     # cleanup old modules for this kernel, this helps when rebuilding kernel with less modules
     if [ -d "${output_dir}"/lib/modules/"${kernel_version}" ]; then
     	rm -r "${output_dir}"/lib/modules/"$kernel_version"
     elif [ -d "${output_dir}"/lib/modules/"${kernel_version}"+ ]; then
     	rm -r "${output_dir}"/lib/modules/"$kernel_version"+
     fi
-    
-    
+
+
     # cd into linux source
     cd "${kernel_dir}"
 
@@ -331,7 +331,7 @@ build_kernel()
     rm "${boot_dir}"/uImage
 
     cd "${current_dir}"
-    
+
     # abort point for github runner to keep it from messing with permissions
     if [[ $GHRUNNER == 'on' ]]; then
         exit 0
@@ -340,7 +340,7 @@ build_kernel()
     # fix permissions on folders for usability
     chown "root:sudo" "${cache_dir}"
     chown "root:sudo" "${cache_dir}"/*
-  	
+
     chown "root:sudo" "${output_dir}"
     chown -R "root:sudo" "${boot_dir}"
     chown "root:sudo" "${output_dir}"/lib
@@ -351,7 +351,7 @@ build_kernel()
     if [ -f "${output_dir}"/modules-${kernel_version}+.tar.gz ]; then
    	    chown "${current_user}:sudo" "${output_dir}"/modules-${kernel_version}+.tar.gz
     fi
-    
+
     chown "${current_user}:sudo" "${output_dir}"/boot-${kernel_version}.tar.gz
 
     chmod "g+rw" "${cache_dir}"
@@ -359,7 +359,7 @@ build_kernel()
     chmod "g+rw" "${output_dir}"
     chmod -R "g+rw" "${boot_dir}"
     chmod "g+rw" "${output_dir}"/lib
-    
+
 }
 
 build_root_fs()
@@ -440,11 +440,11 @@ EOF
 
     echo "### Copying files from tweaks folder"
     cp -a tweaks/* "${rootfs_dir}"
-    
+
     echo "### Adjusting fstab"
     [[ "$BOOT_DEVICE" == 'usb' ]] && cp "${rootfs_dir}"/etc/fstab.usb "${rootfs_dir}"/etc/fstab
     [[ "$BOOT_DEVICE" == 'hdd' ]] && cp "${rootfs_dir}"/etc/fstab.hdd "${rootfs_dir}"/etc/fstab    
-    
+
     echo "### Running apt in chroot"
     sed -i -e "s/_release_/$release/g" "${rootfs_dir}/etc/apt/sources.list"
 
@@ -494,11 +494,11 @@ EOF
         echo "### You can now adjust the rootfs in output/rootfs/"
         read -r -p "### Press any key to continue..." -n1
     fi
-    
+
     if [[ ${ALLOW_CMDLINE_CHANGES} == 'on' ]]; then
         echo "### Will now enter a root bash in the new rootfs"
         echo "### Once you are done making changes, 'exit' to continue..."
-        chroot "${rootfs_dir}" /bin/bash 
+        chroot "${rootfs_dir}" /bin/bash
     fi
 
     echo "### Unmounting"
@@ -602,8 +602,8 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
         "5" "Pause to allow rootfs changes via filesystem" "$ALLOW_ROOTFS_CHANGES" \
         "6" "Enter bash in rootfs for manual changes" "$ALLOW_CMDLINE_CHANGES" \
         "7" "Ask for extra apt pkgs" "$ASK_EXTRA_PKGS" \
-        "8" "Enable ZRAM on rootfs" "$ZRAM_ENABLED" 
-        
+        "8" "Enable ZRAM on rootfs" "$ZRAM_ENABLED"
+
     # Accept user choices
     BUILD_KERNEL='off'
     CLEAN_KERNEL_SRC='off'
@@ -622,14 +622,14 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     [[ $selection == *6* ]] && ALLOW_CMDLINE_CHANGES='on'
     [[ $selection == *7* ]] && ASK_EXTRA_PKGS='on'
     [[ $selection == *8* ]] && ZRAM_ENABLED='on'
-    
+
 else # at least kernel or rootfs has been selected via command line, check other options and set defaults
     [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='on'
     [[ -z $ALLOW_KERNEL_CONFIG_CHANGES  ]] && ALLOW_KERNEL_CONFIG_CHANGES='off'
-        
-    [[ -z $ALLOW_ROOTFS_CHANGES  ]] && ALLOW_ROOTFS_CHANGES='off'    
+
+    [[ -z $ALLOW_ROOTFS_CHANGES  ]] && ALLOW_ROOTFS_CHANGES='off' 
     [[ -z $ASK_EXTRA_PKGS  ]] && ASK_EXTRA_PKGS='off'
-    [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='on' 
+    [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='on'
 fi
 
 
@@ -642,8 +642,9 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
         "5.10" "Linux kernel 5.10" \
         "5.11" "Linux kernel 5.11" \
         "5.12" "Linux kernel 5.12" \
-        "5.13" "Linux kernel 5.13"
-        
+        "5.13" "Linux kernel 5.13" \
+	"5.14" "Linux kernel 5.14"
+
     ############################################################
     # Required gcc:
     #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
@@ -665,8 +666,8 @@ BACKTITLE+=" | "${kernel_branch}
 if [[ $BUILD_ROOTFS == "on" ]] && [[ -z $BUILD_INITRAMFS ]]; then
     display_select "Build initramfs" "Do you want to build the initramfs?" \
     "y" "yes" \
-    "n" "no" 
-    
+    "n" "no"
+
     BUILD_INITRAMFS='off'
 
     [[ $selection == "y" ]] && BUILD_INITRAMFS='on'
@@ -693,14 +694,14 @@ if [[ $BUILD_ROOTFS == "on" ]]; then
             "hdd" "For usage with internal HDD (boot&root on sda3, data on sda2)"
         BOOT_DEVICE="$selection"
     fi
-    
+
     if [[ "$BOOT_DEVICE" != "hdd" ]] && [[ "$BOOT_DEVICE" != "usb" ]]; then
         display_select "Rootfs creation" "Invalid boot device selected! Please choose:" \
             "usb" "For usage with USB stick (boot on sdb1, root on sdb2)" \
             "hdd" "For usage with internal HDD (boot&root on sda3, data on sda2)"
         BOOT_DEVICE="$selection"
     fi
-    
+
     if [ -z "$root_pw" ]; then
         # Adjust default root pw
         display_input "Rootfs creation" "Type in the root password (Warning, root ssh will be enabled)" "1234"
