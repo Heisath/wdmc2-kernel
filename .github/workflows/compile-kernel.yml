@@ -31,4 +31,8 @@ jobs:
       - name: run build script with ghrunner config
         run: ./build.sh --ghrunner
   
-     
+      # Upload build results
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-results
+          path: output/*.tar.gz     

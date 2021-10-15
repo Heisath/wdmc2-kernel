@@ -144,7 +144,7 @@ read_arguments() {
                 ALLOW_ROOTFS_CHANGES='on'
                 shift;
             ;;
-	        --initramfs)
+            --initramfs)
 	            BUILD_INITRAMFS='on'
 	            shift;
             ;;
@@ -221,6 +221,10 @@ build_kernel()
         kernel_config="config/linux-$kernel_branch.config";
     fi
 
+    if [[ $GHRUNNER == 'on' ]]; then
+        rm -rf "${output_dir}"
+    fi
+
     # generate output directory
     mkdir -p "${output_dir}"
     mkdir -p "${boot_dir}"
@@ -235,7 +239,6 @@ build_kernel()
     else
         if [ ${CLEAN_KERNEL_SRC} = 'on' ]; then
             echo "### Kernel dir does exist. Fetching and cleaning"
-            echo "### If you want to skip this step provide --noclean"
 
             cd ${kernel_dir}
 
@@ -246,7 +249,7 @@ build_kernel()
 
             cd ${current_dir}
         else
-            echo "### Kernel dir does exist. --noclean provided"
+            echo "### Kernel dir does exist. --clean not provided"
             echo "### Continuing with dirty kernel src"
 
         fi
@@ -269,7 +272,6 @@ build_kernel()
 
     cp "${kernel_config}" "${kernel_dir}"/.config
     cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/
-
 
 
     # cleanup old modules for this kernel, this helps when rebuilding kernel with less modules
