@@ -3,7 +3,7 @@
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=HXWRU82YBV7HC&source=url)
 
-* mainline kernel support tested with 4.18.x / 5.10.x / 5.11.x
+* mainline kernel support tested with 4.18 / 5.6 / 5.8 / 5.10 / 5.11 / 5.12 / 5.13 / 5.14
 	- device tree source ./dts/armada-375-wdmc-gen2.dts
 	- kernel config for various kernels included check ./config/
 	- some tweaks and pointers in txt files ./docs/
@@ -11,12 +11,12 @@
 	- supports caching of kernel and rootfs so not everything needs to be rebuilt everytime
 	- built rootfs has zram support and uses it for swap and logging
 	
-* prerequisites for building will be installed by build.sh automatically using:
+* prerequisites for building will be installed by build.sh automatically.
 	- buildscript has been developed and tested on Ubuntu Hirsute (21.04) with gcc-arm-none-eabi (https://packages.ubuntu.com/hirsute/gcc-arm-none-eabi) hosted in a VirtualBox, there are known problems when using older debian/ubuntu releases or wsl(2)
 	- `apt-get install build-essential bc libncurses5 dialog u-boot-tools git libncurses-dev lib32z1 lib32ncurses5-dev libmpc-dev libmpfr-dev libgmp3-dev flex bison debootstrap debian-archive-keyring qemu-user-static`
 	- gcc for arm eabi `apt-get install gcc-arm-none-eabi`
 		- OR (ONLY USE IF ABOVE DOES NOT WORK)
-		- extract the gcc/glibc archive to /opt
+		- extract the gcc/glibc archive from toolchain to /opt
 		- adjust the path to the gcc in build.sh
 
 * build.sh
@@ -31,13 +31,13 @@
 		- `--rootfs` to select rootfs creation:
     		- `--release {debianrelease}` to select the debian release to use as rootfs
 			- `--changes` to pause and wait for changes in the rootfs before unmounting and packaging (this allows you to do customization)
-        	- `--initramfs` to create new initramfs in rootfs        	
+        	- `--initramfs` to create new initramfs in rootfs
     		- `--root-pw {rootpw}` to select root pw for new rootfs
 	    	- `--hostname {host}` to select hostname for new rootfs
             - `--zram` to enable logging and swap via ZRAM
             - `--boot {usb/hdd}` to select fstab to use (either for booting from usb or hdd)
 	- if a parameters is not given, the default value is used or the user is prompted
-	- if building a rootfs build.sh will include the tweaks from ./tweaks/  You can adjust fstab and various other stuff there
+	- if building a rootfs build.sh will include the tweaks from ./tweaks/  You can adjust fstab and various other stuff there, files will be copied straight to rootfs
 	- Depending on the selected actions the script will:
 		- for the kernel: 
 			- git clone and checkout the kernel 
