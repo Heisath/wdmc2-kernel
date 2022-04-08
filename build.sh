@@ -123,6 +123,7 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
         "5.14" "Linux kernel 5.14" \
         "5.15" "Linux kernel 5.15" \
         "5.16" "Linux kernel 5.16" \
+        "5.17" "Linux kernel 5.17" \
 
     ############################################################
     # Required gcc:
