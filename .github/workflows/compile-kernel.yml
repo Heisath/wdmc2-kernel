@@ -29,7 +29,7 @@ jobs:
       
       # Runs a single command using the runners shell
       - name: run build script with ghrunner config
-        run: ./build.sh --ghrunner
+        run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-5.15.y
   
       # Upload build results
       - uses: actions/upload-artifact@v2
