@@ -153,19 +153,8 @@ read_arguments() {
 
 
             --ghrunner)
-                BUILD_KERNEL='on'
-                CLEAN_KERNEL_SRC='on'
-                ALLOW_KERNEL_CONFIG_CHANGES='off'
-
-                BUILD_INITRAMFS='off'
-                BUILD_ROOT='off'
-
-                kernel_branch='linux-5.10.y'
-
                 GHRUNNER='on'
                 THREADS=2
-
-
                 shift;
             ;;
 
