@@ -8,7 +8,7 @@ build_root_fs()
     components='main,contrib'
     # Adjust package list here
     includes="bash,ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,init,udev,kmod,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,cpio,u-boot-tools,bc,dbus" 
-    mirror_addr="http://httpredir.debian.org/debian/"
+    mirror_addr="http://deb.debian.org/debian/"
 
     # cleanup old
     rm -rf "${rootfs_dir}"
