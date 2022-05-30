@@ -81,8 +81,10 @@ EOF
     cp -a tweaks/* "${rootfs_dir}"
 
     echo "### Adjusting fstab"
-    [[ "$BOOT_DEVICE" == 'usb' ]] && cp "${rootfs_dir}"/etc/fstab.usb "${rootfs_dir}"/etc/fstab
-    [[ "$BOOT_DEVICE" == 'hdd' ]] && cp "${rootfs_dir}"/etc/fstab.hdd "${rootfs_dir}"/etc/fstab    
+    cp "${rootfs_dir}"/etc/fstab.usb "${rootfs_dir}"/etc/fstab.usb
+    cp "${rootfs_dir}"/etc/fstab.hdd "${rootfs_dir}"/etc/fstab.hdd    
+    [[ "$BOOT_DEVICE" == 'usb' ]] && ln -sf "${rootfs_dir}"/etc/fstab.usb "${rootfs_dir}"/etc/fstab
+    [[ "$BOOT_DEVICE" == 'hdd' ]] && ln -sf "${rootfs_dir}"/etc/fstab.hdd "${rootfs_dir}"/etc/fstab    
 
     echo "### Running apt in chroot"
     sed -i -e "s/_release_/$release/g" "${rootfs_dir}/etc/apt/sources.list"
