@@ -90,6 +90,7 @@
 	If you need custom initramfs or different kernel settings, check the code and build neccessary files yourself.
 		
 * how to debug
+
 	If you get stuck at any point it is really helpful to access the boot log and watch uboot and the uRamdisk do its stuff. You can connect a 3.3V usb-serial converter (also often referred to as FTDI Breakout or USB2UART) to the UART pins on the wdmc. Use the image below for reference (also check the docs folder!)
 	![image](https://github.com/Heisath/wdmc2-kernel/blob/master/docs/UART_Pinout.jpg)
 		
