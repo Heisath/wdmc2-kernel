@@ -79,9 +79,9 @@
 	
 	##### Internal:
 	- make sure drive is using gpt
-	- create root ext4 partition either sda1 or sda3
+	- create root ext4 partition as sda3 
 		- in original wd firmare this needed to be /dev/sda3 (as sda1 was swap and sda2 data) 
-		- new uRamdisk also supports booting from /dev/sda1 
+		- new uRamdisk also supports booting from /dev/sda1 (though this is untested and might not work)
 	- extract bullseye-rootfs.tar.gz on the root
 	- adjust sda3/etc/fstab to fit your needs (check it at least!)
 	- boot wdmc, root password is '1234' configure/add packages as needed
