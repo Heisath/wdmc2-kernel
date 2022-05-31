@@ -5,3 +5,5 @@ GND	====0
 Vcc	====0	(3.3v, not used)
 N/C		x	(empty)
 Rx	====0
+
+UART is using 3.3V levels (with pullups) and 115200 baud, 8bits, 1stop, no parity
