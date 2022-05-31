@@ -67,31 +67,33 @@
 
 	To use the prebuilt releases on your wdmc you'll have to decide wether to use a USB drive or the internal drive. 
 	
-	##### USB:
-
+	##### USB (usb 2.0 stick is recommended, usb 3.0 does have troubles rebooting):
 	- create a FAT32 partition (this will be used to boot, will be called sdb1)
 	- create a ext4 partition (this will be used as root, will be called sdb2)
-	- create a folder called 'boot' on sdb1
-	- move the files from release/boot into the boot folder on sdb1. Rename/link the uImage-5.6 file to uImage. Make sure both the uImage and uRamdisk are executable
-	- extract the buster-rootfs.tar.gz on the sdb2 partition
-	- copy the release/lib/ folder onto the sdb2 partition (to add the 5.6 modules)
+	- extract boot-5.x.x.tar.gz on sdb1 (FAT32) partition
+	- extract the bullseye-rootfs.tar.gz on the sdb2 (ext4) partition
 	- adjust sdb2/etc/fstab to fit your needs (will probably be ok)
-	- boot wdmc with usb stick, root password is '1234', configure/add packages as needed
+	- boot wdmc with usb stick, root password is '1234'
+	- adjust time and date, use `hwclock --systohc` to update RTC
+	- configure/add packages as needed
 	
 	##### Internal:
-
-	- create ext4 partition (this should be the third, so /dev/sda3)
-	- copy the folder from release/boot into sda3. Rename/link the uImage-5.6 file to uImage. Make sure both the uImage and uRamdisk are executable
-	- extract the buster-rootfs.tar.gz on the sda3 partition
-	- copy the release/lib/ folder onto the sda3 partition (to add the 5.6 modules)
-	- boot wdmc, root password is '1234', configure/add packages as needed
+	- make sure drive is using gpt
+	- create root ext4 partition either sda1 or sda3
+		- in original wd firmare this needed to be /dev/sda3 (as sda1 was swap and sda2 data) 
+		- new uRamdisk also supports booting from /dev/sda1 
+	- extract bullseye-rootfs.tar.gz on the root
+	- adjust sda3/etc/fstab to fit your needs (check it at least!)
+	- boot wdmc, root password is '1234' configure/add packages as needed
+	- adjust time and date, use `hwclock --systohc` to update RTC
+	- configure/add packages as needed
 	- I suggest starting with USB stick, because this requires no changes on the internal harddisk.
 
 	If you need custom initramfs or different kernel settings, check the code and build neccessary files yourself.
 		
 * how to debug
 
-	If you get stuck at any point it is really helpful to access the boot log and watch uboot and the uRamdisk do its stuff. You can connect a 3.3V usb-serial converter (also often referred to as FTDI Breakout or USB2UART) to the UART pins on the wdmc. Use the image below for reference (also check the docs folder!)
+	If you get stuck at any point it is really helpful to access the boot log and watch uboot and the uRamdisk do its stuff. You can connect a 3.3V usb-serial converter (also often referred to as FTDI Breakout or USB2UART) to the UART pins on the wdmc. The wdmc is using 115200b8n1 with 3.3V pullups on the data lines. Use the image below for reference (also check the docs folder!) 
 	![image](https://github.com/Heisath/wdmc2-kernel/blob/master/docs/UART_Pinout.jpg)
 		
 Thanks to: \
