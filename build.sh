@@ -125,7 +125,8 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
         "5.16" "Linux kernel 5.16" \
         "5.17" "Linux kernel 5.17" \
         "5.18" "Linux kernel 5.18" \
-
+        "6.0"  "Linux kernel 6.0" \
+        
     ############################################################
     # Required gcc:
     #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
