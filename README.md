@@ -134,3 +134,5 @@ If you get stuck at any point it is really helpful to access the boot log and wa
 AllesterFox (http://anionix.ddns.net/WDMyCloud/WDMyCloud-Gen2/) \
 Johns Q https://github.com/Johns-Q/wdmc-gen2 for their original work on the wdmc-gen2 \
 ARMBIAN (https://github.com/armbian/build) for their awesome build script which gave lots of inspiration and the zram config :)
+
+###
