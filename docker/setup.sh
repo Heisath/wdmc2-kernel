@@ -1,10 +1,12 @@
 #!/bin/sh
 
-sudo podman build \
+podman build \
   -t localhost/mycloud-builder \
   -f docker/Dockerfile
 
-sudo podman run -it --rm \
+podman rm mycloud-builder -f
+
+podman run -it --rm \
   --name mycloud-builder \
   -v $(pwd):/build:z \
   --privileged \
