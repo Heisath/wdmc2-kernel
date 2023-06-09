@@ -1,7 +1,7 @@
 # Build with docker / podman
 
 ```
-docker/setup.sh
+docker/builder.sh
 
 ./build.sh
 ```
