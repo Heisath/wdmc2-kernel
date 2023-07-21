@@ -77,8 +77,8 @@ build_kernel()
     # cd into linux source
     cd "${kernel_dir}"
 
-	echo "### Applying patches"
-	git apply -v "${current_dir}"/patches/*.patch
+    echo "### Applying patches"
+    git apply -v "${current_dir}"/patches/*.patch
 
     echo "### Starting make"
 
