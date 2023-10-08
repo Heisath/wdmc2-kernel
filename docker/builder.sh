@@ -1,11 +1,13 @@
 #!/bin/sh
 getenforce && SELINUX=':z'
 
+which podman && alias docker=podman
+
+# docker rm mycloud-builder -f
+
 docker build \
   -t localhost/mycloud-builder \
   -f docker/Dockerfile
-
-docker rm mycloud-builder -f
 
 docker run -it --rm \
   --name mycloud-builder \
