@@ -1,6 +1,7 @@
 #!/bin/sh
 getenforce && SELINUX=':z'
 
+getenforce && SELINUX=':z'
 which podman && alias docker=podman
 
 # docker rm mycloud-builder -f
