@@ -9,9 +9,12 @@ on:
     branches: [ master ]
   #pull_request:
   #  branches: [ master ]
-  
+
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch: 
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -19,20 +22,34 @@ jobs:
   build-kernel:
     # The type of runner that the job will run on
     runs-on: [ self-hosted ]
-  
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         with: 
           clean: 'false'
-      
+
       # Runs a single command using the runners shell
-      - name: run build script with ghrunner config
+      - name: run build script for kernel 5.15.y
         run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-5.15.y
-  
+
+      # Runs a single command using the runners shell
+      - name: run build script for kernel 6.1.y
+        run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-6.1.y
+
       # Upload build results
-      - uses: actions/upload-artifact@v2
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: build-results
+      #     path: output/*.tar.gz
+
+      # Upload build release
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: build-results
-          path: output/*.tar.gz     
+          files: |
+            output/*.gz
+            LICENSE.md
+            README.md
