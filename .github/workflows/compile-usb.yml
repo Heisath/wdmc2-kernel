@@ -1,0 +1,51 @@
+# This is a basic workflow to help you get started with Actions
+
+name: compile usb release
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  #pull_request:
+  #  branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build-usb:
+    # The type of runner that the job will run on
+    runs-on: [ self-hosted ]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with: 
+          clean: 'false'
+
+      # Runs a single command using the runners shell
+      - name: run build script with ghrunner config
+        run: sudo ./build.sh --kernel --clean --rootfs --initramfs --zram --kernelbranch linux-5.15.y --hostname usbmycloud --boot usb --release bullseye --root-pw 1234
+
+      # Upload build results
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-results
+          path: output/*.gz
+
+      # Upload build release
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            output/*.gz
+            LICENSE.md
+            README.md
