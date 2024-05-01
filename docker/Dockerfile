@@ -5,8 +5,9 @@ RUN apt update && \
     apt install -y \
     git build-essential vim \
     bc dialog sudo \
-    libncurses5 libncurses-dev lib32ncurses5-dev libmpc-dev \
-    libmpfr-dev libgmp3-dev lib32z1 \
+    libncurses5 libncurses-dev libmpc-dev \
+    libmpfr-dev libgmp3-dev \
+    lib32z1 lib32ncurses5-dev \
     flex bison debootstrap debian-archive-keyring qemu-user-static \
     u-boot-tools kmod gcc-arm-none-eabi && \
     apt clean && \

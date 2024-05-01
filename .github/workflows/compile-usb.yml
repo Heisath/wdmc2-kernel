@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: compile kernel using ghrunner settings
+name: compile usb release
 
 # Controls when the action will run. 
 on:
@@ -19,7 +19,7 @@ permissions:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build-kernel:
+  build-usb:
     # The type of runner that the job will run on
     runs-on: [ self-hosted ]
 
@@ -31,18 +31,14 @@ jobs:
           clean: 'false'
 
       # Runs a single command using the runners shell
-      - name: run build script for kernel 5.15.y
-        run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-5.15.y
-
-      # Runs a single command using the runners shell
-      - name: run build script for kernel 6.1.y
-        run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-6.1.y
+      - name: run build script with ghrunner config
+        run: sudo ./build.sh --kernel --clean --rootfs --initramfs --zram --kernelbranch linux-5.15.y --hostname usbmycloud --boot usb --release bullseye --root-pw 1234
 
       # Upload build results
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: build-results
-      #     path: output/*.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-results
+          path: output/*.gz
 
       # Upload build release
       - name: Release

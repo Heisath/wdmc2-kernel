@@ -46,7 +46,7 @@ build_root_fs()
 
         echo "### First stage completed"
 
-        cp /usr/bin/"${qemu_binary}" "${rootfs_dir}"/usr/
+        cp /usr/bin/"${qemu_binary}" "${rootfs_dir}"/usr/bin/
 
         mkdir -p  "${rootfs_dir}"/usr/share/keyrings/
         cp /usr/share/keyrings/*-archive-keyring.gpg "${rootfs_dir}"/usr/share/keyrings/
