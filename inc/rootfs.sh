@@ -81,8 +81,8 @@ EOF
     cp -a tweaks/* "${rootfs_dir}"
 
     echo "### Adjusting fstab"
-    [[ "$BOOT_DEVICE" == 'usb' ]] && chroot "${rootfs_dir}" /bin/bash -c "ln -sf /etc/fstab.usb /etc/fstab"
-    [[ "$BOOT_DEVICE" == 'hdd' ]] && chroot "${rootfs_dir}" /bin/bash -c "ln -sf /etc/fstab.hdd /etc/fstab"
+    [[ "$BOOT_DEVICE" == 'usb' ]] && chroot "${rootfs_dir}" /bin/bash -c "ln -rsf /etc/fstab.usb /etc/fstab"
+    [[ "$BOOT_DEVICE" == 'hdd' ]] && chroot "${rootfs_dir}" /bin/bash -c "ln -rsf /etc/fstab.hdd /etc/fstab"
 
     echo "### Running apt in chroot"
     sed -i -e "s/_release_/$release/g" "${rootfs_dir}/etc/apt/sources.list"
@@ -113,8 +113,17 @@ EOF
 
     # Enable zram (swap and logging)
     if [[ ${ZRAM_ENABLED} == 'on' ]]; then
+        echo "### Enable ZRAM"
         chroot ${rootfs_dir} systemctl enable armbian-zram-config.service
         chroot ${rootfs_dir} systemctl enable armbian-ramlog.service
+    else
+        echo "### Enable SWAP"
+        chroot ${rootfs_dir} systemctl disable armbian-zram-config.service
+        chroot ${rootfs_dir} systemctl disable armbian-ramlog.service
+        sed -i 's|#/dev/sda1|/dev/sda1 |' "${rootfs_dir}"/etc/fstab.hdd
+        sed -i 's|#/dev/sdb3|/dev/sdb3 |' "${rootfs_dir}"/etc/fstab.usb
+        sed -i 's|#tmpfs|tmpfs |' "${rootfs_dir}"/etc/fstab.hdd
+        sed -i 's|#tmpfs|tmpfs |' "${rootfs_dir}"/etc/fstab.usb
     fi
 
     if [[ ${BUILD_KERNEL} == 'on' ]]; then

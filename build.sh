@@ -101,12 +101,12 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     [[ $selection == *8* ]] && ZRAM_ENABLED='on'
 
 else # at least kernel or rootfs has been selected via command line, check other options and set defaults
-    [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='on'
+    [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='off'
     [[ -z $ALLOW_KERNEL_CONFIG_CHANGES  ]] && ALLOW_KERNEL_CONFIG_CHANGES='off'
 
     [[ -z $ALLOW_ROOTFS_CHANGES  ]] && ALLOW_ROOTFS_CHANGES='off' 
     [[ -z $ASK_EXTRA_PKGS  ]] && ASK_EXTRA_PKGS='off'
-    [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='on'
+    [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='off'
 fi
 
 
