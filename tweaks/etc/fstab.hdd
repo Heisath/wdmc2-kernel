@@ -11,5 +11,5 @@ sysfs           /sys            sysfs   defaults                                
 
 # Add swap and tmpfs only use if not using ZRAM
 #/dev/sda1      swap            swap    defaults                                                        0       0
-#tmpfs          /#t#m#p         tmpfs   mode=1777                                                       0       0
+#tmpfs          /tmp            tmpfs   defaults,noatime,mode=1777,size=25%                             0       0
 
