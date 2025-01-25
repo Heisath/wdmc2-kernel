@@ -63,7 +63,11 @@ build_kernel()
     fi
 
     cp "${kernel_config}" "${kernel_dir}"/.config
-    cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/
+    if [ -d "${kernel_dir}"/arch/arm/boot/dts/marvell ]; then
+	    cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/marvell/
+    else
+	    cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/    
+    fi
 
 
     # cleanup old modules for this kernel, this helps when rebuilding kernel with less modules
@@ -71,6 +75,8 @@ build_kernel()
     	rm -r "${output_dir}"/lib/modules/"$kernel_version"
     elif [ -d "${output_dir}"/lib/modules/"${kernel_version}"+ ]; then
     	rm -r "${output_dir}"/lib/modules/"$kernel_version"+
+    elif [ -d "${output_dir}"/lib/modules/"${kernel_version}"+ ]; then
+    	rm -r "${output_dir}"/lib/modules/"$kernel_version"-dirty
     fi
 
 
@@ -86,8 +92,15 @@ build_kernel()
         $makehelp menuconfig
     fi
     $makehelp -j${THREADS} zImage
-    $makehelp -j${THREADS} armada-375-wdmc-gen2.dtb
-    cat arch/arm/boot/zImage arch/arm/boot/dts/armada-375-wdmc-gen2.dtb > zImage_and_dtb
+
+    if [ -d "${kernel_dir}"/arch/arm/boot/dts/marvell ]; then
+        $makehelp -j${THREADS} marvell/armada-375-wdmc-gen2.dtb
+    	cat arch/arm/boot/zImage arch/arm/boot/dts/marvell/armada-375-wdmc-gen2.dtb > zImage_and_dtb
+    else
+            $makehelp -j${THREADS} armada-375-wdmc-gen2.dtb
+    	cat arch/arm/boot/zImage arch/arm/boot/dts/armada-375-wdmc-gen2.dtb > zImage_and_dtb    
+    fi
+
     mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n 'WDMC-Gen2' -d zImage_and_dtb "${boot_dir}"/uImage-${kernel_version}
     rm zImage_and_dtb
 
@@ -116,12 +129,14 @@ build_kernel()
     cd "${output_dir}"/lib/modules/
     if [ -d "${kernel_version}" ]; then
     	tar -czf "${output_dir}"/modules-${kernel_version}.tar.gz "${kernel_version}"
-    elif [ -d "${kernel_version}"+ ]; then
+	fi	
+	if [ -d "${kernel_version}"+ ]; then
     	tar -czf "${output_dir}"/modules-${kernel_version}+.tar.gz "${kernel_version}"+
-    else
-    	echo "### Failed to tar up modules folder! It might be missing from the output."
     fi
-
+	if [ -d "${kernel_version}"-dirty ]; then
+    	tar -czf "${output_dir}"/modules-${kernel_version}-dirty.tar.gz "${kernel_version}"-dirty
+	fi
+	
     cd "${output_dir}"
     tar -czf "${output_dir}"/boot-${kernel_version}.tar.gz boot/uRamdisk boot/uImage-${kernel_version} boot/uImage boot/linux-${kernel_version}.config
 

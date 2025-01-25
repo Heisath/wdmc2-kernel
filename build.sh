@@ -127,7 +127,8 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
         "5.18" "Linux kernel 5.18" \
         "6.0"  "Linux kernel 6.0" \
         "6.1"  "Linux kernel 6.1 LTS" \
-        "6.3"  "Linux kernel 6.3" 
+        "6.3"  "Linux kernel 6.3" \
+        "6.6"  "Linux kernel 6.6 LTS" 
         
     ############################################################
     # Required gcc:
@@ -162,7 +163,8 @@ if [[ $BUILD_ROOTFS == "on" ]]; then
     if [ -z "$release" ]; then
         display_select "Rootfs creation" "Please select the Debian release to build." \
             "buster" "Debian Buster" \
-            "bullseye" "Debian Bullseye" 
+            "bullseye" "Debian Bullseye" \
+            "bookworm" "Debian Bookworm"
 
         release=$selection
     fi
