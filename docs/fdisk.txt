@@ -1,0 +1,14 @@
+Disk model: WDC WD40XXXX-XXX
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disklabel type: gpt
+Disk identifier: 2D8EBDB8-B90E-4DD4-BF17-FF7095A7065F
+
+Device        Start        End    Sectors  Size Type
+/dev/sda1      2048   14682111   14680064    7G Linux filesystem
+/dev/sda2  16779264 7814037134 7797257871  3.6T Microsoft basic data
+/dev/sda3  14682112   16779263    2097152    1G Microsoft basic data
+
+ 7G  ->  1G  ->  1T+
+sda1 -> sda3 -> sda2

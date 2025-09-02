@@ -2,3 +2,4 @@
 /linux*
 /_deprecated
 /cache
+initramfs

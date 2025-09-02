@@ -8,13 +8,13 @@ This repository contains documentation and sources to build your own linux kerne
 
 ### Whats included?
 
-* everything to run  a mainline kernel and debian
+* everything to run a mainline kernel and debian
   * device tree source ./dts/armada-375-wdmc-gen2.dts
   * kernel config for various kernels (check ./config/)
   * some tweaks and pointers in txt files ./docs/
   * toolchain for building old kernels is included as txz ./toolchain/ . I suggest using the gcc-arm-none-eabi toolchain via apt!
   * a build script to build the kernel, ramdisk and debootstrap a debian system
-  * some fixes/customisation for the device
+  * some fixes/customization for the device
   * a script to update the ramdisk in place
 
 ### How to use?
@@ -73,10 +73,10 @@ This repository contains documentation and sources to build your own linux kerne
 
 To use the prebuilt releases on your wdmc you'll have to decide wether to use a USB drive or the internal drive.
 
-##### USB (usb 2.0 stick is recommended, usb 3.0 does have troubles rebooting)
+#### USB (USB 2.0 stick is recommended, USB 3.0 does have troubles rebooting)
 
-* create a FAT32 partition (this will be used to boot, will be called sdb1)
-* create a ext4 partition (this will be used as root, will be called sdb2)
+* create a FAT32 partition (this will be used to boot, sdb1 - 200MB)
+* create a ext4 partition (this will be used as root, sdb2 - 1GB+)
 * extract boot-5.x.x.tar.gz on sdb1 (FAT32) partition
 * extract the {release}-rootfs.tar.gz on the sdb2 (ext4) partition
 * adjust sdb2/etc/fstab to fit your needs (will probably be ok)
@@ -84,7 +84,7 @@ To use the prebuilt releases on your wdmc you'll have to decide wether to use a 
 * adjust time and date, use `hwclock --systohc` to update RTC
 * configure/add packages as needed
 
-##### Internal
+#### Internal
 
 * make sure drive is using gpt
 * create root ext4 partition as sda3
@@ -95,7 +95,7 @@ To use the prebuilt releases on your wdmc you'll have to decide wether to use a 
 * boot wdmc, root password is '1234' configure/add packages as needed
 * adjust time and date, use `hwclock --systohc` to update RTC
 * configure/add packages as needed
-* I suggest starting with USB stick, because this requires no changes on the internal harddisk.
+* I suggest starting with USB stick, because this requires no changes on the internal hard disk.
 
 If you need custom initramfs or different kernel settings, check the code and build necessary files yourself.
 

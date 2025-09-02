@@ -1,4 +1,5 @@
 #!/bin/sh
+
 getenforce && SELINUX=':z'
 which podman && alias docker=podman
 
@@ -12,4 +13,5 @@ docker run -it --rm \
   --name mycloud-builder \
   -v $(pwd):/build${SELINUX} \
   --privileged \
+  --replace \
   localhost/mycloud-builder
