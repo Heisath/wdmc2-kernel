@@ -4,10 +4,19 @@ Run build scripts in a container.
 
 Note: you may have to use `sudo` to run the script to have the ability to build rootfs
 
-```
-# kernel building
+```sh
+# start build container
 docker/builder.sh
+```
 
-# rootfs & kernel building
+```sh
+# start build containers for rootfs building
+
 sudo docker/builder.sh
+```
+
+Run builder
+
+```sh
+./build.sh
 ```

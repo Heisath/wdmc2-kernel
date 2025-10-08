@@ -7,8 +7,15 @@ build_root_fs()
     qemu_binary='qemu-arm-static'
     components='main,contrib'
     # Adjust package list here
-    includes="bash,ccache,locales,git,ca-certificates,debhelper,rsync,python3,distcc,systemd,systemd-timesyncd,init,udev,kmod,busybox,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,cpio,u-boot-tools,bc,dbus" 
-    mirror_addr="http://deb.debian.org/debian/"
+    includes="bash,ccache,locales,git,ca-certificates,debhelper,rsync,python3,systemd,systemd-timesyncd,init,udev,kmod,busybox-static,ethtool,dirmngr,hdparm,ifupdown,iproute2,iputils-ping,logrotate,net-tools,nftables,powermgmt-base,procps,rename,resolvconf,rsyslog,ssh,sysstat,update-inetd,isc-dhcp-client,isc-dhcp-common,vim,dialog,apt-utils,nano,keyboard-configuration,console-setup,linux-base,cpio,u-boot-tools,bc,dbus"
+    mirror_addr="https://deb.debian.org/debian/"
+
+    if [ "${release}" == "trixie" ]; then
+        kludge="--no-check-gpg"
+        includes="$includes,e2fsck-static"
+        # wget https://deb.debian.org/debian/dists/trixie/Release.gpg -qO /tmp/debian-release.gpg \
+        # kludge="--keyring=/tmp/debian-release.gpg"
+    fi
 
     # cleanup old
     rm -rf "${rootfs_dir}"
@@ -41,7 +48,7 @@ build_root_fs()
     if [[ ${rootfs_cache_valid} == 'no' ]]; then
         echo "### Creating new rootfs"
 
-        debootstrap --variant=minbase --arch="${arch}" --foreign --components="${components}" --include="${includes}" "${release}" "${rootfs_dir}" "${mirror_addr}"
+        debootstrap ${kludge} --variant=minbase --arch="${arch}" --foreign --components="${components}" --include="${includes}" "${release}" "${rootfs_dir}" "${mirror_addr}"
         [[ $? -ne 0 || ! -f "${rootfs_dir}"/debootstrap/debootstrap ]] && exit_with_error "### Create chroot first stage failed"
 
         echo "### First stage completed"
