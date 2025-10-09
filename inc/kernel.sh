@@ -63,7 +63,14 @@ build_kernel()
     fi
 
     cp "${kernel_config}" "${kernel_dir}"/.config
-    cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/
+    
+    if [ -d "${kernel_dir}"/arch/arm/boot/dts/marvell ]; then
+    	dts_dir="marvell/"
+    else
+    	dts_dir=""
+    fi
+    
+    cp dts/*.dts "${kernel_dir}"/arch/arm/boot/dts/"${dts_dir}"
 
 
     # cleanup old modules for this kernel, this helps when rebuilding kernel with less modules
@@ -83,8 +90,8 @@ build_kernel()
         $makehelp menuconfig
     fi
     $makehelp -j${THREADS} zImage
-    $makehelp -j${THREADS} armada-375-wdmc-gen2.dtb
-    cat arch/arm/boot/zImage arch/arm/boot/dts/armada-375-wdmc-gen2.dtb > zImage_and_dtb
+    $makehelp -j${THREADS} "${dts_dir}"armada-375-wdmc-gen2.dtb
+    cat arch/arm/boot/zImage arch/arm/boot/dts/"${dts_dir}"armada-375-wdmc-gen2.dtb > zImage_and_dtb
     mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -n 'WDMC-Gen2' -d zImage_and_dtb "${boot_dir}"/uImage-${kernel_version}
     rm zImage_and_dtb
 

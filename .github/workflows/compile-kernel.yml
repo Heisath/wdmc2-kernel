@@ -31,12 +31,8 @@ jobs:
           clean: 'false'
 
       # Runs a single command using the runners shell
-      - name: run build script for kernel 5.15.y
-        run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-5.15.y
-
-      # Runs a single command using the runners shell
-      - name: run build script for kernel 6.1.y
-        run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-6.1.y
+      - name: run build script for kernel 6.12.y
+        run: ./build.sh --ghrunner --kernel --clean --kernelbranch linux-6.12.y
 
       # Upload build results
       # - uses: actions/upload-artifact@v4

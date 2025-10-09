@@ -32,13 +32,13 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: run build script with ghrunner config
-        run: sudo ./build.sh --kernel --clean --rootfs --initramfs --zram --kernelbranch linux-5.15.y --hostname usbmycloud --boot usb --release bullseye --root-pw 1234
+        run: ./build.sh --ghrunner --kernel --clean --rootfs --initramfs --zram --kernelbranch linux-6.12.y --hostname usbmycloud --boot usb --release bullseye --root-pw 1234
 
       # Upload build results
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-results
-          path: output/*.gz
+      #- uses: actions/upload-artifact@v4
+      #  with:
+      #    name: build-results
+      #    path: output/*.gz
 
       # Upload build release
       - name: Release
