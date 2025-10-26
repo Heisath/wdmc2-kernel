@@ -62,6 +62,7 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     # set sensible defaults
     BUILD_KERNEL='on'
     CLEAN_KERNEL_SRC='on'
+    ALLOW_KERNEL_SRC_CHANGES='off'
     ALLOW_KERNEL_CONFIG_CHANGES='off'
 
     BUILD_ROOTFS='on'
@@ -73,17 +74,19 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     # Show user checklist to select
     display_checklist "Build setup" "Select components and options for build:" \
         "1" "Linux Kernel" "$BUILD_KERNEL" \
-        "2" "Clean Kernel sources" "$CLEAN_KERNEL_SRC" \
-        "3" "Allow Kernel config changes" "$ALLOW_KERNEL_CONFIG_CHANGES" \
-        "4" "Debian Rootfs" "$BUILD_ROOTFS" \
-        "5" "Pause to allow rootfs changes via filesystem" "$ALLOW_ROOTFS_CHANGES" \
-        "6" "Enter bash in rootfs for manual changes" "$ALLOW_CMDLINE_CHANGES" \
-        "7" "Ask for extra apt pkgs" "$ASK_EXTRA_PKGS" \
-        "8" "Enable ZRAM on rootfs" "$ZRAM_ENABLED"
+        "2" "Clean kernel sources" "$CLEAN_KERNEL_SRC" \
+        "3" "Pause to allow kernel changes via filesystem" "$ALLOW_KERNEL_SRC_CHANGES" \
+        "4" "Allow kernel config changes" "$ALLOW_KERNEL_CONFIG_CHANGES" \
+        "5" "Debian Rootfs" "$BUILD_ROOTFS" \
+        "6" "Pause to allow rootfs changes via filesystem" "$ALLOW_ROOTFS_CHANGES" \
+        "7" "Enter bash in rootfs for manual changes" "$ALLOW_CMDLINE_CHANGES" \
+        "8" "Ask for extra apt pkgs" "$ASK_EXTRA_PKGS" \
+        "9" "Enable ZRAM on rootfs" "$ZRAM_ENABLED"
 
     # Accept user choices
     BUILD_KERNEL='off'
     CLEAN_KERNEL_SRC='off'
+    ALLOW_KERNEL_SRC_CHANGES='off'
     ALLOW_KERNEL_CONFIG_CHANGES='off'
     BUILD_ROOTFS='off'
     ALLOW_ROOTFS_CHANGES='off'
@@ -93,12 +96,13 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
 
     [[ $selection == *1* ]] && BUILD_KERNEL='on'
     [[ $selection == *2* ]] && CLEAN_KERNEL_SRC='on'
-    [[ $selection == *3* ]] && ALLOW_KERNEL_CONFIG_CHANGES='on'
-    [[ $selection == *4* ]] && BUILD_ROOTFS='on'
-    [[ $selection == *5* ]] && ALLOW_ROOTFS_CHANGES='on'
-    [[ $selection == *6* ]] && ALLOW_CMDLINE_CHANGES='on'
-    [[ $selection == *7* ]] && ASK_EXTRA_PKGS='on'
-    [[ $selection == *8* ]] && ZRAM_ENABLED='on'
+    [[ $selection == *3* ]] && ALLOW_KERNEL_SRC_CHANGES='on'
+    [[ $selection == *4* ]] && ALLOW_KERNEL_CONFIG_CHANGES='on'
+    [[ $selection == *5* ]] && BUILD_ROOTFS='on'
+    [[ $selection == *6* ]] && ALLOW_ROOTFS_CHANGES='on'
+    [[ $selection == *7* ]] && ALLOW_CMDLINE_CHANGES='on'
+    [[ $selection == *8* ]] && ASK_EXTRA_PKGS='on'
+    [[ $selection == *9* ]] && ZRAM_ENABLED='on'
 
 else # at least kernel or rootfs has been selected via command line, check other options and set defaults
     [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='off'
@@ -117,15 +121,7 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
         "5.6" "Linux kernel 5.6" \
         "5.8" "Linux kernel 5.8" \
         "5.10" "Linux kernel 5.10 LTS" \
-        "5.11" "Linux kernel 5.11" \
-        "5.12" "Linux kernel 5.12" \
-        "5.13" "Linux kernel 5.13" \
-        "5.14" "Linux kernel 5.14" \
         "5.15" "Linux kernel 5.15 LTS" \
-        "5.16" "Linux kernel 5.16" \
-        "5.17" "Linux kernel 5.17" \
-        "5.18" "Linux kernel 5.18" \
-        "6.0"  "Linux kernel 6.0" \
         "6.1"  "Linux kernel 6.1  LTS - Bookworm" \
         "6.3"  "Linux kernel 6.3" \
         "6.12" "Linux kernel 6.12 LTS - Trixie"

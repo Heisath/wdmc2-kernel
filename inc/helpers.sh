@@ -128,6 +128,10 @@ read_arguments() {
                 CLEAN_KERNEL_SRC='on'
                 shift;
             ;;
+            --source)
+            	ALLOW_KERNEL_SRC_CHANGES='on'
+            	shift;
+        	;;
             --config)
                 ALLOW_KERNEL_CONFIG_CHANGES='on'
                 shift;

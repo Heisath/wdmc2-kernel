@@ -76,9 +76,11 @@ build_kernel()
     # cleanup old modules for this kernel, this helps when rebuilding kernel with less modules
     if [ -d "${output_dir}"/lib/modules/"${kernel_version}" ]; then
     	rm -r "${output_dir}"/lib/modules/"$kernel_version"
-    elif [ -d "${output_dir}"/lib/modules/"${kernel_version}"+ ]; then
+    fi
+    if [ -d "${output_dir}"/lib/modules/"${kernel_version}"+ ]; then
     	rm -r "${output_dir}"/lib/modules/"$kernel_version"+
-    elif [ -d "${output_dir}"/lib/modules/"${kernel_version}"+ ]; then
+    fi
+    if [ -d "${output_dir}"/lib/modules/"${kernel_version}"-dirty ]; then
     	rm -r "${output_dir}"/lib/modules/"$kernel_version"-dirty
     fi
 
@@ -86,8 +88,18 @@ build_kernel()
     # cd into linux source
     cd "${kernel_dir}"
 
-    echo "### Applying patches"
-    git apply -v "${current_dir}"/patches/*.patch
+
+    if [ -f "${current_dir}/patches/*.patch" ]; then
+        echo "### Applying patches"
+        git apply -v "${current_dir}"/patches/*.patch
+    else
+    	echo "### No active patches found, skipping"
+    fi
+	
+    if [[ ${ALLOW_KERNEL_SRC_CHANGES} == 'on' ]]; then
+    	echo "### You can now adjust the kernel in ${kernel_dir}"
+        read -r -p "### Press any key to continue..." -n1
+    fi
 
     echo "### Starting make"
 
