@@ -38,7 +38,7 @@ makehelp='make CROSS_COMPILE=/usr/bin/arm-none-eabi- ARCH=arm'                  
 read_arguments "$@"
 
 if [[ "${EUID}" != "0" ]] && [[ $GHRUNNER != 'on' ]]; then
-    echo "This script requires root privileges, please rerun using sudo"
+    echo "This script requires root privileges, please rerun using sudo or fakeroot"
     exit 1
 fi
 
@@ -101,12 +101,12 @@ if [[ -z $BUILD_KERNEL ]] && [[ -z $BUILD_ROOTFS ]]; then
     [[ $selection == *8* ]] && ZRAM_ENABLED='on'
 
 else # at least kernel or rootfs has been selected via command line, check other options and set defaults
-    [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='on'
+    [[ -z $CLEAN_KERNEL_SRC  ]] && CLEAN_KERNEL_SRC='off'
     [[ -z $ALLOW_KERNEL_CONFIG_CHANGES  ]] && ALLOW_KERNEL_CONFIG_CHANGES='off'
 
     [[ -z $ALLOW_ROOTFS_CHANGES  ]] && ALLOW_ROOTFS_CHANGES='off' 
     [[ -z $ASK_EXTRA_PKGS  ]] && ASK_EXTRA_PKGS='off'
-    [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='on'
+    [[ -z $ZRAM_ENABLED  ]] && ZRAM_ENABLED='off'
 fi
 
 
@@ -126,10 +126,10 @@ if [[ $BUILD_KERNEL == "on" ]] && [ -z "$kernel_branch" ]; then
         "5.17" "Linux kernel 5.17" \
         "5.18" "Linux kernel 5.18" \
         "6.0"  "Linux kernel 6.0" \
-        "6.1"  "Linux kernel 6.1 LTS" \
+        "6.1"  "Linux kernel 6.1  LTS - Bookworm" \
         "6.3"  "Linux kernel 6.3" \
-        "6.6"  "Linux kernel 6.6 LTS" 
-        
+        "6.12" "Linux kernel 6.12 LTS - Trixie"
+
     ############################################################
     # Required gcc:
     #  armada370-gcc464_glibc215_hard_armada-GPL.txz (included in git)    FOR KERNEL VERSION <= 5.6
@@ -162,15 +162,16 @@ fi
 if [[ $BUILD_ROOTFS == "on" ]]; then
     if [ -z "$release" ]; then
         display_select "Rootfs creation" "Please select the Debian release to build." \
-            "buster" "Debian Buster" \
+            "trixie" "Debian Trixie" \
+            "bookworm" "Debian Bookworm" \
             "bullseye" "Debian Bullseye" \
-            "bookworm" "Debian Bookworm"
+            "buster" "Debian Buster"
 
         release=$selection
     fi
 
     if [[ "$ASK_EXTRA_PKGS" == 'on' ]]; then
-        display_input "Rootfs creation" "Type in any extra apt packages you want install. (Space seperated)" "$EXTRA_PKGS"
+        display_input "Rootfs creation" "Type in any extra apt packages you want install. (Space separated)" "$EXTRA_PKGS"
         EXTRA_PKGS="$selection"
     fi
 
