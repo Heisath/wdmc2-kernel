@@ -46,7 +46,11 @@ echo 0 > /proc/sys/net/ipv4/tcp_timestamps
 echo none > /sys/class/leds/system-blue/trigger
 echo default-on > /sys/class/leds/system-green/trigger
 echo ide-disk > /sys/class/leds/system-red/trigger
+# used on newer kernel
+echo disk-activity > /sys/class/leds/system-red/trigger
+
+# enable rc.local on newer debian
+systemctl enable --now rc.local.service
 
 # Show list of available led "Trigger" options:
 cat /sys/class/leds/system-blue/trigger
-

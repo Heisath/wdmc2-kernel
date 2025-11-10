@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo none > /sys/class/leds/system-blue/trigger
+echo default-on > /sys/class/leds/system-green/trigger
+
+echo ide-disk > /sys/class/leds/system-red/trigger
+# used on newer kernel
+echo disk-activity > /sys/class/leds/system-red/trigger
+
+exit 0
